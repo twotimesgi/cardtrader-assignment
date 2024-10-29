@@ -1,0 +1,68 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider     = "mysql"
+  url          = env("DATABASE_URL")
+  relationMode = "prisma"
+}
+
+model Category {
+  id         String      @id @default(uuid())
+  name       String
+  products   Product[]
+  attributes Attribute[] // List of possible attributes for products in this category
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Product {
+  id                String                  @id @default(uuid())
+  name              String
+  description       String?
+  price             Float
+  categoryId        String
+  category          Category                @relation(fields: [categoryId], references: [id])
+  productAttributes ProductAttributeValue[] // Values for each attribute
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([categoryId]) // Index on categoryId
+}
+
+model Attribute {
+  id         String   @id @default(uuid())
+  name       String // e.g., "Color", "Size"
+  categoryId String
+  category   Category @relation(fields: [categoryId], references: [id])
+
+  createdAt             DateTime                @default(now())
+  updatedAt             DateTime                @updatedAt
+  ProductAttributeValue ProductAttributeValue[]
+
+  @@index([categoryId]) // Index on categoryId
+}
+
+model ProductAttributeValue {
+  id          String    @id @default(uuid())
+  value       String // e.g., "Red", "Large"
+  productId   String
+  attributeId String
+  product     Product   @relation(fields: [productId], references: [id])
+  attribute   Attribute @relation(fields: [attributeId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([productId]) // Index on productId
+  @@index([attributeId]) // Index on attributeId
+}
