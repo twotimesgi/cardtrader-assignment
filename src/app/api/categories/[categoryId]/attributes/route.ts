@@ -45,3 +45,33 @@ export const POST = async (req: Request,
     return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
   }
 };
+
+
+export const GET = async (req: Request, { params }: { params: { categoryId: string } }) => {
+    try {
+      const { categoryId } = params;
+  
+      // Retrieve all attributes for the specified categoryId
+      const attributes = await db.attribute.findMany({
+        where: {
+          categoryId: categoryId,
+        },
+      });
+  
+      return NextResponse.json(attributes);
+    } catch (error: any) {
+      console.log("GET /api/categories/[categoryId]/attributes/route.ts error:", JSON.stringify(error));
+  
+      // Handle Prisma errors
+      if (
+        error instanceof Prisma.PrismaClientKnownRequestError ||
+        error instanceof Prisma.PrismaClientInitializationError ||
+        error instanceof Prisma.PrismaClientValidationError
+      ) {
+        return handlePrismaError(error);
+      }
+  
+      // Handle unknown errors
+      return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+    }
+  };
