@@ -112,6 +112,6 @@ export const GET = async (req: Request) => {
       }
   
       // Handle unknown errors
-      return NextResponse.json({ error: error.message ?? "Internal Server Error" }, { status: 500 });
+      return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
     }
   };

@@ -2,7 +2,7 @@
 import { Prisma } from "@prisma/client";
 import { NextResponse } from "next/server";
 
-//Handling all the types https://www.prisma.io/docs/orm/reference/error-reference
+//Handling all the error types https://www.prisma.io/docs/orm/reference/error-reference
 export function handlePrismaError(error: any) {
   if (error instanceof Prisma.PrismaClientKnownRequestError) {
     switch (error.code) {
