@@ -6,6 +6,7 @@ import { handlePrismaError } from "@/lib/prismaErrorHandler";
 
 const schema = z.object({
   name: z.string().min(2, { message: "Name must be 2 or more characters long" }),
+  required: z.boolean({message: "Required must be a boolean value"}).optional()
 });
 
 export const POST = async (req: Request,
@@ -20,6 +21,7 @@ export const POST = async (req: Request,
     const product = await db.attribute.create({
         data: {
           name: body.name,
+          required: body.required ?? false,
           categoryId: categoryId
         },
       });
@@ -60,7 +62,7 @@ export const GET = async (req: Request, { params }: { params: { categoryId: stri
   
       return NextResponse.json(attributes);
     } catch (error: any) {
-      console.log("GET /api/categories/[categoryId]/attributes/route.ts error:", JSON.stringify(error));
+      console.log("[GET /api/categories/[categoryId]/attributes/route.ts] Error:", JSON.stringify(error));
   
       // Handle Prisma errors
       if (

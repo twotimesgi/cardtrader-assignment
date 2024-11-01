@@ -39,6 +39,7 @@ model Attribute {
   id         String   @id @default(uuid())
   name       String
   categoryId String
+  required   Boolean  @default(false)
   category   Category @relation(fields: [categoryId], references: [id], onDelete: Cascade) // Foreign key relation with cascading delete
   ProductAttributeValue ProductAttributeValue[]
 

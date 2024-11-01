@@ -24,7 +24,7 @@ export const POST = async (req: Request) => {
     return NextResponse.json(product);
   } catch (error: any) {
     // Log the exact error for debugging
-    console.log("POST /api/categories/route.ts error:", JSON.stringify(error));
+    console.log("[POST /api/categories/route.ts] Error:", JSON.stringify(error));
 
     // Handle Zod validation errors
     if (error instanceof z.ZodError) {
