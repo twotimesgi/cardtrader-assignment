@@ -1,12 +1,8 @@
-import { getProducts } from "../../../actions/getProducts";
 
-export default async function Home() {
-  const products = await getProducts({
-    attributes: {}
-  })
+export default  function Home() {
   return (
     <main>
-      {JSON.stringify(products)}
+      Homepage
     </main>
   );
 }
