@@ -3,7 +3,8 @@ import localFont from "next/font/local";
 import "./globals.css";
 import {TooltipProvider} from "@/components/ui/tooltip"
 import { Toaster } from "sonner";
-import { JotaiProvider } from "@/components/jotai-provider";
+import { JotaiProvider } from "@/components/providers/jotai-provider";
+
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
   variable: "--font-geist-sans",
@@ -26,16 +27,17 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
+
     <html lang="en">
-      
       <body
         className={`${geistSans.style} ${geistMono.variable} antialiased`}
       >
-        <JotaiProvider>
+                <JotaiProvider>
         <TooltipProvider>
           <Toaster toastOptions={
             {className: "rounded-none border-0"}
           }/>
+          {/* TODO: Remove React Query devtools */}
         {children}
         </TooltipProvider>
         </JotaiProvider>

@@ -1,10 +1,10 @@
 import { db } from "@/lib/db";
 
 interface GetProductsParameters {
-  skip?: number;
-  take?: number;
+  skip?: number | undefined;
+  take?: number | undefined;
   categoryId?: string;
-  attributes?: { [attributeName: string]: string };
+  attributes?: { [attributeName: string]: string[] }; // Supports multiple values per attribute
 }
 
 export const getProducts = async ({
@@ -14,8 +14,7 @@ export const getProducts = async ({
   attributes,
 }: GetProductsParameters) => {
   try {
-    //To be sure products have all the required attributes set we could also use MySql Trigger running on product insertion
-    // Get all required attribute IDs for the specified category
+    // Fetch required attributes for the specified category
     const requiredAttributes = await db.attribute.findMany({
       where: {
         ...(categoryId && { categoryId }),
@@ -27,49 +26,44 @@ export const getProducts = async ({
       },
     });
 
-    const requiredAttributeIds = requiredAttributes.map(attr => attr.id);
+    const requiredAttributeIds = requiredAttributes.map((attr) => attr.id);
 
-    // Base filter to ensure each product has ProductAttributeValues for all required attributes
-    const baseFilter = {
-      productAttributes: {
-        some: {
-          attributeId: {
-            in: requiredAttributeIds, // Ensure a ProductAttributeValue exists for each required attribute
-          },
-        },
-      },
-    };
-
-    // If additional filters are specified, apply them on top of the base filter
-    const additionalFilters = [
-      ...(categoryId ? [{ categoryId }] : []), // Filter by categoryId if provided
-      ...(attributes && Object.keys(attributes).length > 0
-        ? [
-            {
-              productAttributes: {
-                some: {
-                  AND: Object.entries(attributes).map(([attributeName, attributeValue]) => ({
-                    attribute: {
-                      name: attributeName,
-                      required: true, // Only match required attributes
-                    },
-                    value: attributeValue, // Match the specified attribute value
-                  })),
-                },
+    // Base filter to ensure all required attributes are set
+    const baseFilter = requiredAttributes.length
+      ? {
+          productAttributes: {
+            some: {
+              attributeId: {
+                in: requiredAttributeIds,
               },
             },
-          ]
-        : []),
-    ];
+          },
+        }
+      : {};
 
-    // Execute the query with both the base filter and additional filters if provided
+    // Build flexible attribute filters to match any of the selected values for each attribute
+    const attributeFilters = attributes
+      ? Object.entries(attributes).map(([attributeName, values]) => ({
+          productAttributes: {
+            some: {
+              AND: [
+                { attribute: { name: attributeName } }, // Match the attribute name
+                { value: { in: values } }, // Match any of the selected values
+              ],
+            },
+          },
+        }))
+      : [];
+
+    // Execute the query combining baseFilter and attributeFilters
     const products = await db.product.findMany({
       ...(take && { take }),
       ...(skip && { skip }),
       where: {
         AND: [
-          baseFilter, // Ensure the product has ProductAttributeValues for required attributes
-          ...additionalFilters, // Apply categoryId and attribute filters if specified
+          baseFilter, // Ensure the product has required attributes
+          ...(categoryId ? [{ categoryId }] : []), // Filter by category if provided
+          ...attributeFilters, // Apply each attribute filter with OR logic across values
         ],
       },
       include: {
