@@ -2,7 +2,7 @@ import { db } from "@/lib/db";
 import { Prisma } from "@prisma/client";
 import { z } from "zod";
 import { NextResponse } from "next/server";
-import { handlePrismaError } from "@/lib/prismaErrorHandler";
+import { handlePrismaError } from "@/lib/prisma-error-handler";
 
 const schema = z.object({
   value: z.string(),
