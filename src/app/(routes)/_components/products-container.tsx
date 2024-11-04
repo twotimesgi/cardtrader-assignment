@@ -1,16 +1,15 @@
 "use client";
 
-import { ProductCard } from "@/app/(routes)/_components/product-card";
-import { MotionDiv } from "@/components/motion-div";
-import { Product } from "@prisma/client";
 import { useInfiniteQuery } from "@tanstack/react-query";
-import { useEffect, useRef } from "react";
 import { useSearchParams } from "next/navigation";
 import { ExclamationTriangleIcon } from "@radix-ui/react-icons";
+import { ProductCard } from "@/app/(routes)/_components/product-card";
+import { MotionDiv } from "@/components/motion-div";
 import { ProductCardSkeleton } from "@/components/skeletons/product-card-skeleton";
 import { getProducts } from "../_api/getProducts";
 import { PAGE_SIZE } from "../../../../const";
 import { useIntersectionObserver } from "../_hooks/useIntersectionObserver";
+import { useEffect } from "react";
 
 interface ProductsContainerProps {
   categoryId: string;
@@ -23,19 +22,26 @@ const productVariants = {
   visible: { opacity: 1, x: 0, transition: { duration: 0.4 } },
 };
 
-// Sample product images
+// Sample product images (Placeholder)
 const SAMPLE_IMAGES = [
   "https://static.nike.com/a/images/t_PDP_1728_v1/f_auto,q_auto:eco/32c4e533-1f15-472c-bb50-28570ce5e766/ZM+VAPOR+16+ELITE+FG.png",
   "https://static.nike.com/a/images/t_PDP_1728_v1/f_auto,q_auto:eco/5c191f19-9304-41b5-9a6e-aa31a18c4dcc/ZM+VAPOR+16+ELITE+FG.png",
   "https://static.nike.com/a/images/t_PDP_1728_v1/f_auto,q_auto:eco/fa829b33-2547-4479-9e85-43f14e2ed593/ZM+VAPOR+16+ELITE+FG.png",
 ];
 
+
 export const ProductsContainer = ({ categoryId, categoryName }: ProductsContainerProps) => {
   const searchParams = useSearchParams();
-
+  const search = searchParams.get("search") || ""; // Get the `search` parameter explicitly
+  
+  // useEffect(() => {
+  //   refetch();
+  // },[searchParams]);
+  
   const {
     data,
     isLoading,
+    refetch,
     isError,
     fetchNextPage,
     hasNextPage,
@@ -47,6 +53,7 @@ export const ProductsContainer = ({ categoryId, categoryName }: ProductsContaine
         skip: pageParam * PAGE_SIZE,
         take: PAGE_SIZE,
         categoryId,
+        search, // Pass the search parameter explicitly to getProducts
       }),
     initialPageParam: 0,
     getNextPageParam: (lastPage, allPages) => {
@@ -72,17 +79,17 @@ export const ProductsContainer = ({ categoryId, categoryName }: ProductsContaine
   return (
     <div>
       <div className="text-xl mb-4">{categoryName}</div>
-      
+
       {/* No products found or loading message */}
       {allProducts.length === 0 && !isLoading && (
         <div className="flex items-center justify-center text-muted-foreground">
           <span className="text-sm">No products found.</span>
         </div>
       )}
-      
+
       {/* Products grid */}
       <div className="grid lg:grid-cols-3 grid-cols-2 md:gap-x-6 gap-x-2 gap-y-4 w-full">
-        {allProducts.map((product: Product) => (
+        {allProducts.map((product) => (
           <MotionDiv
             key={product.id}
             variants={productVariants}

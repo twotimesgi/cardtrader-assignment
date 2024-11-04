@@ -31,7 +31,6 @@ export const POST = async (req: Request) => {
     if (error instanceof z.ZodError) {
       return NextResponse.json({ errors: error.issues }, { status: 400 });
     }
-   
     if (error instanceof Prisma.PrismaClientKnownRequestError || 
         error instanceof Prisma.PrismaClientInitializationError || 
         error instanceof Prisma.PrismaClientValidationError) {
@@ -42,78 +41,74 @@ export const POST = async (req: Request) => {
   }
 };
 
+
 export const GET = async (req: Request) => {
   try {
     const url = new URL(req.url);
     const searchParams = new URLSearchParams(url.searchParams);
 
+    // Pagination parameters
     const skip = parseInt(searchParams.get("skip") ?? "0");
     const take = parseInt(searchParams.get("take") ?? "10");
     const categoryId = searchParams.get("categoryId");
+    const search = searchParams.get("search")?.trim() || ""; // `search` for model or brand
 
+    // Parse attribute filters from query params
     const attributes: { [attributeName: string]: string[] } = {};
     searchParams.forEach((value, key) => {
       if (key.startsWith("attribute_")) {
         const attributeName = key.replace("attribute_", "");
-        attributes[attributeName] = value.split(","); // Store multiple values for each attribute
+        attributes[attributeName] = value.split(","); // Split values for OR condition
       }
     });
 
-    const requiredAttributes = await db.attribute.findMany({
-      where: {
-        ...(categoryId && { categoryId }),
-        required: true,
-      },
-      select: {
-        id: true,
-        name: true,
-      },
-    });
-
-    const requiredAttributeIds = requiredAttributes.map((attr) => attr.id);
-
-    const baseFilter = requiredAttributes.length
+    //Search filter
+    const searchFilter = search
       ? {
-          productAttributes: {
-            some: {
-              attributeId: {
-                in: requiredAttributeIds,
-              },
-            },
-          },
+          OR: [
+            { model: { contains: search } },
+            { brand: { contains: search } },
+          ],
         }
       : {};
 
+    // Build attribute filters
     const attributeFilters = Object.entries(attributes).map(([attributeName, values]) => ({
       productAttributes: {
         some: {
           attribute: { name: attributeName },
-          value: { in: values },
+          value: { in: values }, // OR condition for each value in this attribute
         },
       },
     }));
 
+    //Apply category and attribute requirements if applicable
+    const categoryFilter = categoryId ? { categoryId } : {};
+    
+    //Count products matching filters
     const count = await db.product.count({
       where: {
         AND: [
-          baseFilter,
-          ...(categoryId ? [{ categoryId }] : []),
-          ...attributeFilters,
+          categoryFilter,
+          searchFilter,      // AND with search filter
+          ...attributeFilters, // AND with each attribute filter
         ],
       },
     });
 
+    // Step 6: Retrieve products with all filters applied
     const products = await db.product.findMany({
       take,
       skip,
       where: {
         AND: [
-          baseFilter,
-          ...(categoryId ? [{ categoryId }] : []),
+          categoryFilter,
+          searchFilter,
           ...attributeFilters,
         ],
       },
       include: {
+        productImages: true,
         productAttributes: {
           include: {
             attribute: true,
@@ -122,7 +117,7 @@ export const GET = async (req: Request) => {
       },
     });
 
-    return NextResponse.json({products: products, count: count});
+    return NextResponse.json({ products, count });
   } catch (error: any) {
     console.log("[GET /api/products/route.ts] Error:", JSON.stringify(error));
 
