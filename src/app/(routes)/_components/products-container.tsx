@@ -1,21 +1,77 @@
+"use client";
 import { ProductCard } from "@/components/product-card";
-import { getProducts } from "../../../../actions/getProducts";
 import { MotionDiv } from "@/components/motion-div";
 import { Product } from "@prisma/client";
- export const Products = async ({products} : {products: Product[]}) => {
-  // Define animation variants for opacity and x
-  const productCardVariants = {
-    hidden: { opacity: 0, x: -20 },
-    visible: { opacity: 1, x: 0, transition: { duration: 0.4 } },
-  };
+import { useQuery } from "@tanstack/react-query";
+import { useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
+import { ExclamationTriangleIcon } from "@radix-ui/react-icons";
+import { ProductCardSkeleton } from "@/components/skeletons/product-card-skeleton";
+import { SearchBar } from "./search-bar";
+import { getProducts } from "../api/getProducts";
+
+interface ProductsContainerProps {
+  categoryId: string;
+  categoryName: string;
+}
+
+export const ProductsContainer = ({
+  categoryId,
+  categoryName,
+}: ProductsContainerProps) => {
+  const PAGE_SIZE = 10;
+  const searchParams = useSearchParams(); // Read URL search params
+  const [skip, setSkip] = useState(0);
+
+  useEffect(() => {
+    refetch();
+  }, [searchParams]);
+
+  // Fetch data with useQuery and refetch on parameter change
+  const { data, isLoading, error, refetch } = useQuery({
+    queryKey: ["products", categoryId, skip, searchParams.toString()],
+    queryFn: () =>
+      getProducts({
+        searchParams: searchParams,
+        skip: skip,
+        categoryId: categoryId,
+      }),
+  });
+
+  if (error) {
+    return (<>
+      <SearchBar categoryName={categoryName} />
+      <div className="flex items-center justify-center flex-col text-muted-foreground gap-2">
+        <ExclamationTriangleIcon className="size-4" />
+        <span className="text-sm">Error</span>
+      </div>
+      </>
+    );
+  }
+
+  if (isLoading) {
+    return (<>
+      <SearchBar categoryName={categoryName} />
+      <div className="grid lg:grid-cols-3 md:grid-cols-2 grid-cols-1 gap-x-6 gap-y-4 w-full">
+        {[...Array(10)].map((item, index) => (
+          <ProductCardSkeleton key={index} />
+        ))}
+      </div>
+      </>
+    );
+  }
 
   return (
-    <div className="grid lg:grid-cols-3 md:grid-cols-2 grid-cols-1 gap-x-6 gap-y-4 w-full">
-      {products.map((product) =>
-
+    <>
+      <SearchBar categoryName={categoryName} />
+      <div className="grid lg:grid-cols-3 md:grid-cols-2 grid-cols-1 gap-x-6 gap-y-4 w-full">
+        {data?.map((product: Product) => (
           <MotionDiv
-            key={`${product.id}`}
-            variants={productCardVariants}
+            key={product.id}
+            variants={{
+              hidden: { opacity: 0, x: -20 },
+              visible: { opacity: 1, x: 0, transition: { duration: 0.4 } },
+            }}
             initial="hidden"
             animate="visible"
             exit="hidden"
@@ -32,8 +88,8 @@ import { Product } from "@prisma/client";
               price={product.price}
             />
           </MotionDiv>
-      
-      )}
-    </div>
+        ))}
+      </div>
+    </>
   );
 };

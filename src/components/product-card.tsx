@@ -105,7 +105,7 @@ export const ProductCard = ({
             {!showThumbnails && (
               <motion.div
               key="details"
-              initial="hidden"
+              initial="visible"
               animate="visible"
               exit="hidden"
               variants={detailsVariants}

@@ -7,6 +7,7 @@ interface GetProductsParameters {
   attributes?: { [attributeName: string]: string[] }; // Supports multiple values per attribute
 }
 
+
 export const getProducts = async ({
   skip,
   take = 10,
@@ -28,7 +29,6 @@ export const getProducts = async ({
 
     const requiredAttributeIds = requiredAttributes.map((attr) => attr.id);
 
-    // Base filter to ensure all required attributes are set
     const baseFilter = requiredAttributes.length
       ? {
           productAttributes: {
@@ -41,7 +41,6 @@ export const getProducts = async ({
         }
       : {};
 
-    // Build flexible attribute filters to match any of the selected values for each attribute
     const attributeFilters = attributes
       ? Object.entries(attributes).map(([attributeName, values]) => ({
           productAttributes: {
@@ -55,7 +54,16 @@ export const getProducts = async ({
         }))
       : [];
 
-    // Execute the query combining baseFilter and attributeFilters
+    const count = await db.product.count({
+      where: {
+        AND: [
+          baseFilter, // Ensure the product has required attributes
+          ...(categoryId ? [{ categoryId }] : []), // Filter by category if provided
+          ...attributeFilters, // Apply each attribute filter with OR logic across values
+        ],
+      },
+    });
+
     const products = await db.product.findMany({
       ...(take && { take }),
       ...(skip && { skip }),
@@ -75,9 +83,10 @@ export const getProducts = async ({
       },
     });
 
-    return products;
+    // Step 3: Return both products and total count
+    return { products, count };
   } catch (error: any) {
     console.log("[actions/getProducts.ts] Error: ", JSON.stringify(error));
-    return [];
+    return { products: [], count: 0 };
   }
 };
