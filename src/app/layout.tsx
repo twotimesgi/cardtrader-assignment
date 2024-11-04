@@ -5,7 +5,6 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { Toaster } from "sonner";
 import { JotaiProvider } from "@/components/providers/jotai-provider";
 import { TanstackProvider } from "@/components/providers/tanstack-provider";
-import { FramerGlobalConfig } from "@/components/providers/framer-global-config";
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -35,7 +34,6 @@ export default function RootLayout({
           <JotaiProvider>
             <TooltipProvider>
               <Toaster toastOptions={{ className: "rounded-none border-0" }} />
-              <FramerGlobalConfig/>
               {children}
             </TooltipProvider>
           </JotaiProvider>
