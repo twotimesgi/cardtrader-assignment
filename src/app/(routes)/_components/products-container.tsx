@@ -8,18 +8,32 @@ import { useSearchParams } from "next/navigation";
 import { ExclamationTriangleIcon } from "@radix-ui/react-icons";
 import { ProductCardSkeleton } from "@/components/skeletons/product-card-skeleton";
 import { getProducts } from "../api/getProducts";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
+import { PAGE_SIZE } from "../../../../const";
 
 interface ProductsContainerProps {
   categoryId: string;
   categoryName: string;
 }
 
+
 export const ProductsContainer = ({ categoryId }: ProductsContainerProps) => {
-  const PAGE_SIZE = 12;
   const searchParams = useSearchParams();
+  const [currentPage, setCurrentPage] = useState(1);
   const [skip, setSkip] = useState(0);
 
-  const { data, isLoading, isError, refetch } = useQuery<Product[]>({
+  const { data, isLoading, isError, refetch } = useQuery<{
+    products: Product[];
+    count: number;
+  }>({
     queryKey: ["products", categoryId, skip, searchParams.toString()],
     queryFn: () =>
       getProducts({
@@ -30,11 +44,20 @@ export const ProductsContainer = ({ categoryId }: ProductsContainerProps) => {
   });
 
   useEffect(() => {
-    refetch();
-  }, [searchParams, skip, refetch]);
+    setSkip((currentPage - 1) * PAGE_SIZE);
+  }, [currentPage]);
 
-  const handleNextPage = () => setSkip((prevSkip) => prevSkip + PAGE_SIZE);
-  const handlePrevPage = () => setSkip((prevSkip) => Math.max(0, prevSkip - PAGE_SIZE));
+  useEffect(() => {
+    refetch();
+  }, [searchParams, skip]);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchParams]);
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+  };
 
   if (isError) {
     return (
@@ -47,7 +70,7 @@ export const ProductsContainer = ({ categoryId }: ProductsContainerProps) => {
 
   if (isLoading) {
     return (
-      <div className="grid lg:grid-cols-3 grid-cols-2 gap-x-6 gap-y-4 w-full">
+      <div className="grid lg:grid-cols-3 grid-cols-2 gap-x-2 md:gap-x-4 gap-y-4 w-full">
         {[...Array(PAGE_SIZE)].map((_, index) => (
           <ProductCardSkeleton key={index} />
         ))}
@@ -55,10 +78,14 @@ export const ProductsContainer = ({ categoryId }: ProductsContainerProps) => {
     );
   }
 
+  const totalPages = Math.ceil((data?.count || 0) / PAGE_SIZE);
+  const startPage = Math.max(1, currentPage - 1);
+  const endPage = Math.min(totalPages, currentPage + 1);
+
   return (
     <>
-      <div className="grid lg:grid-cols-3 grid-cols-2 gap-x-6 gap-y-4 w-full">
-        {data?.map((product: Product) => (
+      <div className="grid lg:grid-cols-3 grid-cols-2 gap-x-2  md:gap-x-4 gap-y-4 w-full">
+        {data?.products.map((product: Product) => (
           <MotionDiv
             key={product.id}
             variants={{
@@ -83,24 +110,67 @@ export const ProductsContainer = ({ categoryId }: ProductsContainerProps) => {
           </MotionDiv>
         ))}
       </div>
-
-      {/* Pagination Controls */}
-      <div className="flex justify-between mt-4">
-        <button
-          onClick={handlePrevPage}
-          disabled={skip === 0}
-          className="btn btn-outline"
-        >
-          Previous
-        </button>
-        <button
-          onClick={handleNextPage}
-          disabled={data && data.length < PAGE_SIZE}
-          className="btn btn-outline"
-        >
-          Next
-        </button>
-      </div>
+      {totalPages > 1 && (
+        <Pagination>
+          <PaginationContent>
+            <PaginationItem>
+              <PaginationPrevious
+                href="#"
+                onClick={() => handlePageChange(currentPage - 1)}
+                aria-disabled={currentPage === 1}
+                className={
+                  currentPage === 1 ? "pointer-events-none opacity-30" : undefined
+                }
+              />
+            </PaginationItem>
+            {startPage > 1 && (
+              <PaginationItem>
+                <PaginationLink href="#" onClick={() => handlePageChange(1)}>
+                  1
+                </PaginationLink>
+              </PaginationItem>
+            )}
+            {startPage > 2 && <PaginationEllipsis />}
+            {Array.from({ length: endPage - startPage + 1 }, (_, index) => {
+              const pageNumber = startPage + index;
+              return (
+                <PaginationItem key={pageNumber}>
+                  <PaginationLink
+                    href="#"
+                    onClick={() => handlePageChange(pageNumber)}
+                    aria-disabled={currentPage === pageNumber}
+                    className={
+                      currentPage === pageNumber
+                        ? "pointer-events-none bg-primary/5"
+                        : undefined
+                    }
+                  >
+                    {pageNumber}
+                  </PaginationLink>
+                </PaginationItem>
+              );
+            })}
+            {endPage < totalPages - 1 && <PaginationEllipsis />}
+            {endPage < totalPages && (
+              <PaginationItem>
+                <PaginationLink href="#" onClick={() => handlePageChange(totalPages)}>
+                  {totalPages}
+                </PaginationLink>
+              </PaginationItem>
+            )}
+            <PaginationItem>
+              <PaginationNext
+                href="#"
+                onClick={() => handlePageChange(currentPage + 1)}
+                aria-disabled={currentPage === totalPages}
+                className={
+                  currentPage === totalPages ? "pointer-events-none opacity-30" : undefined
+                }
+              />
+            </PaginationItem>
+          </PaginationContent>
+        </Pagination>
+      )}
     </>
   );
 };

@@ -34,7 +34,7 @@ export const ProductCardSkeleton = () => {
       <div className="w-full">
         <Skeleton borderRadius={0} baseColor="#f7f7f7" className={"w-full aspect-square"} />
       </div>
-      <div className="py-2 min-h-[110px]">
+      <div className="py-2">
         <motion.div
           key="details"
           initial="visible"

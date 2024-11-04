@@ -73,39 +73,10 @@ export const ProductCard = ({
           <AddToFavorites id={id} />
         </div>
 
-        <div className="py-2 min-h-[110px]">
-          <AnimatePresence mode="wait" initial={false}>
-            {showThumbnails && (
-              <motion.div
-              key="thumbnails"
-              initial="hidden"
-              animate="visible"
-              exit="hidden"
-              variants={thumbnailsContainerVariants}
-                className="grid grid-cols-5 gap-x-2" 
-                onMouseLeave={() => setCurrentImage(productImageUrls[0])}
-              >
-                {productImageUrls.slice(0, 5).map((imageUrl) => (
-                  <motion.div
-                    className="shrink-0 aspect-square w-full]"
-                    key={imageUrl}
-                    variants={thumbnailsVariants}
-                  >
-                    {/* TODO: Replace all img with Image */}
-                    <img
-                      className="w-full h-full object-cover"
-                      src={imageUrl}
-                      onMouseEnter={() => setCurrentImage(imageUrl)}
-                      alt={`${brand} ${model}`}
-                    />
-                  </motion.div>
-                ))}
-              </motion.div>
-            )}
-            {!showThumbnails && (
+        <div className="py-2">
               <motion.div
               key="details"
-              initial="visible"
+              initial="hidden"
               animate="visible"
               exit="hidden"
               variants={detailsVariants}
@@ -120,8 +91,6 @@ export const ProductCard = ({
                 </div>
                 <div className="md:text-sm text-muted-foreground line-clamp-1 xl:text-base text-xs">{brand}</div>
               </motion.div>
-            )}
-          </AnimatePresence>
         </div>
       </div>
     </Link>
