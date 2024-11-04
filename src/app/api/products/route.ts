@@ -122,7 +122,7 @@ export const GET = async (req: Request) => {
       },
     });
 
-    return NextResponse.json(products);
+    return NextResponse.json({products: products, count: count});
   } catch (error: any) {
     console.log("[GET /api/products/route.ts] Error:", JSON.stringify(error));
 
