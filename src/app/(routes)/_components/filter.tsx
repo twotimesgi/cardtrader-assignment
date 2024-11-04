@@ -14,7 +14,7 @@ export const Filter = ({filter, index}: {filter: FilterType, index: number}) => 
     const pathname = usePathname();
     const router = useRouter();
     const searchParams = useSearchParams();
-    
+
   const onClick = (filter: FilterType, value: string) => {
     const currentParams = Object.fromEntries(searchParams.entries());
     const attributeKey = `attribute_${filter.attributeName}`;
@@ -27,7 +27,6 @@ export const Filter = ({filter, index}: {filter: FilterType, index: number}) => 
     const updatedParams = {
       ...currentParams,
       [attributeKey]: updatedValues.length ? updatedValues.join(",") : undefined,
-      skip: 0,
     };
 
     const url = qs.stringifyUrl(
