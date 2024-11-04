@@ -1,4 +1,5 @@
 import { db } from "@/lib/db";
+import { PAGE_SIZE } from "../const";
 
 interface GetProductsParameters {
   skip?: number | undefined;
@@ -10,7 +11,7 @@ interface GetProductsParameters {
 
 export const getProducts = async ({
   skip,
-  take = 10,
+  take = PAGE_SIZE,
   categoryId,
   attributes,
 }: GetProductsParameters) => {

@@ -4,7 +4,7 @@ import qs from "query-string";
 import axios from "axios";
 import { PAGE_SIZE } from "../../../../const";
 
-export const getProducts = async ({searchParams, skip, categoryId} : {searchParams: ReadonlyURLSearchParams, skip: number, categoryId: string}) => {
+export const getProducts = async ({searchParams, skip, categoryId, take} : {searchParams: ReadonlyURLSearchParams, skip: number, categoryId: string, take: number}) => {
     try {
       // Construct the query string based on searchParams, pagination, and categoryId
       const currentParams = Object.fromEntries(searchParams.entries());
@@ -13,7 +13,7 @@ export const getProducts = async ({searchParams, skip, categoryId} : {searchPara
         ...currentParams,
         categoryId,
         skip,
-        take: PAGE_SIZE,
+        take: take,
       });
 
       const { data } = await axios.get(`/api/products?${query}`);
