@@ -22,21 +22,11 @@ const productVariants = {
   visible: { opacity: 1, x: 0, transition: { duration: 0.4 } },
 };
 
-// Sample product images (Placeholder)
-const SAMPLE_IMAGES = [
-  "https://static.nike.com/a/images/t_PDP_1728_v1/f_auto,q_auto:eco/32c4e533-1f15-472c-bb50-28570ce5e766/ZM+VAPOR+16+ELITE+FG.png",
-  "https://static.nike.com/a/images/t_PDP_1728_v1/f_auto,q_auto:eco/5c191f19-9304-41b5-9a6e-aa31a18c4dcc/ZM+VAPOR+16+ELITE+FG.png",
-  "https://static.nike.com/a/images/t_PDP_1728_v1/f_auto,q_auto:eco/fa829b33-2547-4479-9e85-43f14e2ed593/ZM+VAPOR+16+ELITE+FG.png",
-];
-
 
 export const ProductsContainer = ({ categoryId, categoryName }: ProductsContainerProps) => {
   const searchParams = useSearchParams();
   const search = searchParams.get("search") || ""; // Get the `search` parameter explicitly
   
-  // useEffect(() => {
-  //   refetch();
-  // },[searchParams]);
   
   const {
     data,
@@ -101,7 +91,7 @@ export const ProductsContainer = ({ categoryId, categoryName }: ProductsContaine
               id={product.id}
               model={product.model}
               brand={product.brand}
-              productImageUrls={SAMPLE_IMAGES}
+              productImageUrls={[]}
               price={product.price}
             />
           </MotionDiv>

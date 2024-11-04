@@ -5,6 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { motion } from "framer-motion";
 import { AddToFavorites } from "./add-to-favorites";
+import { LiaImage } from "react-icons/lia";
 
 interface ProductCardProps {
   id: string;
@@ -30,13 +31,19 @@ export const ProductCard = ({
     <Link href={`/products/${id}`} className="block w-full h-auto">
       <div className="relative w-full">
         {/* TODO: replace with Image component fron next*/}
-        <img
-          src={productImageUrls[0]}
-          alt={`${brand} ${model}`}
-          width={400}
-          height={400}
-          className="object-cover object-center aspect-square w-full"
-        />
+        {productImageUrls[0] ? (
+          <Image
+            src={productImageUrls[0]}
+            alt={`${brand} ${model}`}
+            width={400}
+            height={400}
+            className="object-cover object-center aspect-square w-full"
+          />
+        ) : (
+          <div className="object-cover object-center aspect-square w-full bg-muted-foreground/10 flex items-center justify-center">
+            <LiaImage size={50} className="text-muted-foreground/50" />
+          </div>
+        )}
         <AddToFavorites id={id} />
       </div>
 
