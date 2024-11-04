@@ -1,4 +1,4 @@
-import { Tooltip, TooltipContent, TooltipTrigger } from "./ui/tooltip";
+import { Tooltip, TooltipContent, TooltipTrigger } from "../../../components/ui/tooltip";
 import { useState } from "react";
 import { PiHeartStraight, PiHeartStraightFill } from "react-icons/pi";
 import { toast } from "sonner";

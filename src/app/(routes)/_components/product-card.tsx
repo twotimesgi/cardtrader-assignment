@@ -111,14 +111,14 @@ export const ProductCard = ({
               variants={detailsVariants}
                >
                 <div className="flex justify-between gap-[20px]">
-                  <div className="text-base font-semibold line-clamp-1 xl:text-lg">
+                  <div className="md:text-base font-semibold line-clamp-1 xl:text-lg text-xs">
                     {model}
                   </div>
-                  <span className="text-base font-light lg:text-lg">
+                  <span className="md:text-base font-light lg:text-lg text-xs">
                     {formatPrice(price)}
                   </span>
                 </div>
-                <div className="text-sm text-muted-foreground line-clamp-1 xl:text-base">{brand}</div>
+                <div className="md:text-sm text-muted-foreground line-clamp-1 xl:text-base text-xs">{brand}</div>
               </motion.div>
             )}
           </AnimatePresence>

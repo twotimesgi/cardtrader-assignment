@@ -30,17 +30,10 @@ export const ProductCardSkeleton = () => {
   };
 
   return (
-    <div className="w-full block">
+    <div className="block">
       <div className="w-full">
-        {/* TODO: Replace all img with Image */}
-        {/* <img
-            className="object-cover object-center aspect-square w-full"
-            src={currentImage}
-            alt={`${brand} ${model}`}
-          /> */}
         <Skeleton borderRadius={0} baseColor="#f7f7f7" className={"w-full aspect-square"} />
       </div>
-
       <div className="py-2 min-h-[110px]">
         <motion.div
           key="details"

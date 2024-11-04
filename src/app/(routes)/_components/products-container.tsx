@@ -1,5 +1,5 @@
 "use client";
-import { ProductCard } from "@/components/product-card";
+import { ProductCard } from "@/app/(routes)/_components/product-card";
 import { MotionDiv } from "@/components/motion-div";
 import { Product } from "@prisma/client";
 import { useQuery } from "@tanstack/react-query";
@@ -7,7 +7,6 @@ import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { ExclamationTriangleIcon } from "@radix-ui/react-icons";
 import { ProductCardSkeleton } from "@/components/skeletons/product-card-skeleton";
-import { SearchBar } from "./search-bar";
 import { getProducts } from "../api/getProducts";
 
 interface ProductsContainerProps {
@@ -15,56 +14,50 @@ interface ProductsContainerProps {
   categoryName: string;
 }
 
-export const ProductsContainer = ({
-  categoryId,
-  categoryName,
-}: ProductsContainerProps) => {
-  const PAGE_SIZE = 10;
-  const searchParams = useSearchParams(); // Read URL search params
+export const ProductsContainer = ({ categoryId }: ProductsContainerProps) => {
+  const PAGE_SIZE = 12;
+  const searchParams = useSearchParams();
   const [skip, setSkip] = useState(0);
 
-  useEffect(() => {
-    refetch();
-  }, [searchParams]);
-
-  // Fetch data with useQuery and refetch on parameter change
-  const { data, isLoading, error, refetch } = useQuery({
+  const { data, isLoading, isError, refetch } = useQuery<Product[]>({
     queryKey: ["products", categoryId, skip, searchParams.toString()],
     queryFn: () =>
       getProducts({
         searchParams: searchParams,
-        skip: skip,
+        skip,
         categoryId: categoryId,
       }),
   });
 
-  if (error) {
-    return (<>
-      <SearchBar categoryName={categoryName} />
+  useEffect(() => {
+    refetch();
+  }, [searchParams, skip, refetch]);
+
+  const handleNextPage = () => setSkip((prevSkip) => prevSkip + PAGE_SIZE);
+  const handlePrevPage = () => setSkip((prevSkip) => Math.max(0, prevSkip - PAGE_SIZE));
+
+  if (isError) {
+    return (
       <div className="flex items-center justify-center flex-col text-muted-foreground gap-2">
         <ExclamationTriangleIcon className="size-4" />
         <span className="text-sm">Error</span>
       </div>
-      </>
     );
   }
 
   if (isLoading) {
-    return (<>
-      <SearchBar categoryName={categoryName} />
-      <div className="grid lg:grid-cols-3 md:grid-cols-2 grid-cols-1 gap-x-6 gap-y-4 w-full">
-        {[...Array(10)].map((item, index) => (
+    return (
+      <div className="grid lg:grid-cols-3 grid-cols-2 gap-x-6 gap-y-4 w-full">
+        {[...Array(PAGE_SIZE)].map((_, index) => (
           <ProductCardSkeleton key={index} />
         ))}
       </div>
-      </>
     );
   }
 
   return (
     <>
-      <SearchBar categoryName={categoryName} />
-      <div className="grid lg:grid-cols-3 md:grid-cols-2 grid-cols-1 gap-x-6 gap-y-4 w-full">
+      <div className="grid lg:grid-cols-3 grid-cols-2 gap-x-6 gap-y-4 w-full">
         {data?.map((product: Product) => (
           <MotionDiv
             key={product.id}
@@ -89,6 +82,24 @@ export const ProductsContainer = ({
             />
           </MotionDiv>
         ))}
+      </div>
+
+      {/* Pagination Controls */}
+      <div className="flex justify-between mt-4">
+        <button
+          onClick={handlePrevPage}
+          disabled={skip === 0}
+          className="btn btn-outline"
+        >
+          Previous
+        </button>
+        <button
+          onClick={handleNextPage}
+          disabled={data && data.length < PAGE_SIZE}
+          className="btn btn-outline"
+        >
+          Next
+        </button>
       </div>
     </>
   );
