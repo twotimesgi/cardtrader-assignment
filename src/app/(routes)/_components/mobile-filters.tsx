@@ -33,11 +33,9 @@ export const MobileFilters = ({ filters, className }: MobileFilterProps) => {
             </Button>
       </SheetTrigger>
       <SheetContent side={"left"}>
-          <VisuallyHidden>
             <SheetTitle>
             Filters
           </SheetTitle>
-          </VisuallyHidden>
           <Filters filters={filters} />
       </SheetContent>
     </Sheet>

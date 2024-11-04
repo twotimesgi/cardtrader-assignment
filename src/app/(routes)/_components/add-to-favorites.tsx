@@ -12,7 +12,7 @@ export const AddToFavorites = ({ id }: AddToFavoritesProps) => {
 
   const addFav = (e :React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
     e.preventDefault()
-    //TODO: implement backend request to add to favorites
+    //TODO: implement mutation to add to favorites
     setIsFavorite((prev) => !prev);
     toast.success(`Product has been ${isFavorite?"removed from":"added to"} favorites`)
 }

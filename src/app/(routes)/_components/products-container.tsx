@@ -22,6 +22,7 @@ export const ProductsContainer = ({ categoryId }: ProductsContainerProps) => {
   // Infinite Query to fetch products
   const {
     data,
+    isFetchingNextPage,
     isLoading,
     isError,
     fetchNextPage,
@@ -33,9 +34,9 @@ export const ProductsContainer = ({ categoryId }: ProductsContainerProps) => {
         searchParams,
         skip: pageParam * PAGE_SIZE,
         take: PAGE_SIZE,
-        categoryId: categoryId,
+        categoryId,
       }),
-    initialPageParam: 0, // Start with the first page
+    initialPageParam: 0,
     getNextPageParam: (lastPage, allPages) => {
       const totalFetched = allPages.flatMap((page) => page.products).length;
       return totalFetched < lastPage.count ? allPages.length : undefined;
@@ -52,7 +53,7 @@ export const ProductsContainer = ({ categoryId }: ProductsContainerProps) => {
           fetchNextPage();
         }
       },
-      { threshold: 0.1 } // Trigger when 10% visible
+      { threshold: 0.1 }
     );
 
     observer.observe(loaderRef.current);
@@ -63,15 +64,17 @@ export const ProductsContainer = ({ categoryId }: ProductsContainerProps) => {
     return (
       <div className="flex items-center justify-center flex-col text-muted-foreground gap-2">
         <ExclamationTriangleIcon className="size-4" />
-        <span className="text-sm">Error</span>
+        <span className="text-sm">Error loading products.</span>
       </div>
     );
   }
 
+  // Combine all pages of products
   const allProducts = data?.pages.flatMap((page) => page.products) || [];
 
   return (
-    <>
+    <div>
+      {/* Product grid */}
       <div className="grid lg:grid-cols-3 grid-cols-2 md:gap-x-6 gap-x-2 gap-y-4 w-full">
         {allProducts.map((product: Product) => (
           <MotionDiv
@@ -98,15 +101,20 @@ export const ProductsContainer = ({ categoryId }: ProductsContainerProps) => {
           </MotionDiv>
         ))}
       </div>
-      {isLoading && (
-      <div className="grid lg:grid-cols-3 grid-cols-2 md:gap-x-6 gap-x-2 gap-y-4 w-full">
+
+      {/* Skeleton loader cards when more results are available or is loading */}
+      {(hasNextPage || isLoading) && (
+        <div className="grid lg:grid-cols-3 grid-cols-2 md:gap-x-6 gap-x-2 gap-y-4 w-full">
           {[...Array(PAGE_SIZE)].map((_, index) => (
-            <ProductCardSkeleton key={index} />
+            <div
+              ref={index === 0 ? loaderRef : null}  // Attach ref to the first skeleton card
+              key={index}
+            >
+              <ProductCardSkeleton />
+            </div>
           ))}
         </div>
       )}
-      {/* Loader element for triggering the Intersection Observer */}
-      <div ref={loaderRef} className="h-20" />
-    </>
+    </div>
   );
 };
