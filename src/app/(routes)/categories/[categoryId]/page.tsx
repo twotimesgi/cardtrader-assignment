@@ -19,7 +19,7 @@ const Home = async ({ params }: { params: { categoryId: string }}) => {
         <MotionDiv layoutRoot className="flex w-full">
           <Filters filters={filters} className="hidden md:block" />
           <MotionDiv className="w-full">
-            <SearchBar filters={filters} categoryName={category.name} />
+            <SearchBar filters={filters} />
             <ProductsContainer categoryId={categoryId} categoryName={category.name}/>
           </MotionDiv>
         </MotionDiv>

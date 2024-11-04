@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
-import { useShowFilters } from "@/app/(routes)/store/useShowFilters";
+import { useShowFilters } from "@/app/(routes)/_store/useShowFilters";
 import {
   Accordion,
 } from "../../../components/ui/accordion";

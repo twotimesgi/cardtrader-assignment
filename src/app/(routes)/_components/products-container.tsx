@@ -1,4 +1,5 @@
 "use client";
+
 import { ProductCard } from "@/app/(routes)/_components/product-card";
 import { MotionDiv } from "@/components/motion-div";
 import { Product } from "@prisma/client";
@@ -7,22 +8,33 @@ import { useEffect, useRef } from "react";
 import { useSearchParams } from "next/navigation";
 import { ExclamationTriangleIcon } from "@radix-ui/react-icons";
 import { ProductCardSkeleton } from "@/components/skeletons/product-card-skeleton";
-import { getProducts } from "../api/getProducts";
+import { getProducts } from "../_api/getProducts";
 import { PAGE_SIZE } from "../../../../const";
+import { useIntersectionObserver } from "../_hooks/useIntersectionObserver";
 
 interface ProductsContainerProps {
   categoryId: string;
   categoryName: string;
 }
 
-export const ProductsContainer = ({ categoryId }: ProductsContainerProps) => {
-  const searchParams = useSearchParams();
-  const loaderRef = useRef<HTMLDivElement | null>(null);
+// Motion variants for product cards
+const productVariants = {
+  hidden: { opacity: 0, x: -20 },
+  visible: { opacity: 1, x: 0, transition: { duration: 0.4 } },
+};
 
-  // Infinite Query to fetch products
+// Sample product images
+const SAMPLE_IMAGES = [
+  "https://static.nike.com/a/images/t_PDP_1728_v1/f_auto,q_auto:eco/32c4e533-1f15-472c-bb50-28570ce5e766/ZM+VAPOR+16+ELITE+FG.png",
+  "https://static.nike.com/a/images/t_PDP_1728_v1/f_auto,q_auto:eco/5c191f19-9304-41b5-9a6e-aa31a18c4dcc/ZM+VAPOR+16+ELITE+FG.png",
+  "https://static.nike.com/a/images/t_PDP_1728_v1/f_auto,q_auto:eco/fa829b33-2547-4479-9e85-43f14e2ed593/ZM+VAPOR+16+ELITE+FG.png",
+];
+
+export const ProductsContainer = ({ categoryId, categoryName }: ProductsContainerProps) => {
+  const searchParams = useSearchParams();
+
   const {
     data,
-    isFetchingNextPage,
     isLoading,
     isError,
     fetchNextPage,
@@ -43,22 +55,7 @@ export const ProductsContainer = ({ categoryId }: ProductsContainerProps) => {
     },
   });
 
-  // Intersection observer to trigger loading more data
-  useEffect(() => {
-    if (!loaderRef.current || !hasNextPage) return;
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (entries[0].isIntersecting) {
-          fetchNextPage();
-        }
-      },
-      { threshold: 0.1 }
-    );
-
-    observer.observe(loaderRef.current);
-    return () => observer.disconnect();
-  }, [fetchNextPage, hasNextPage]);
+  const loaderRef = useIntersectionObserver(fetchNextPage, !!hasNextPage);
 
   if (isError) {
     return (
@@ -74,15 +71,21 @@ export const ProductsContainer = ({ categoryId }: ProductsContainerProps) => {
 
   return (
     <div>
-      {/* Product grid */}
+      <div className="text-xl mb-4">{categoryName}</div>
+      
+      {/* No products found or loading message */}
+      {allProducts.length === 0 && !isLoading && (
+        <div className="flex items-center justify-center text-muted-foreground">
+          <span className="text-sm">No products found.</span>
+        </div>
+      )}
+      
+      {/* Products grid */}
       <div className="grid lg:grid-cols-3 grid-cols-2 md:gap-x-6 gap-x-2 gap-y-4 w-full">
         {allProducts.map((product: Product) => (
           <MotionDiv
             key={product.id}
-            variants={{
-              hidden: { opacity: 0, x: -20 },
-              visible: { opacity: 1, x: 0, transition: { duration: 0.4 } },
-            }}
+            variants={productVariants}
             initial="hidden"
             animate="visible"
             exit="hidden"
@@ -91,11 +94,7 @@ export const ProductsContainer = ({ categoryId }: ProductsContainerProps) => {
               id={product.id}
               model={product.model}
               brand={product.brand}
-              productImageUrls={[
-                "https://static.nike.com/a/images/t_PDP_1728_v1/f_auto,q_auto:eco/32c4e533-1f15-472c-bb50-28570ce5e766/ZM+VAPOR+16+ELITE+FG.png",
-                "https://static.nike.com/a/images/t_PDP_1728_v1/f_auto,q_auto:eco/5c191f19-9304-41b5-9a6e-aa31a18c4dcc/ZM+VAPOR+16+ELITE+FG.png",
-                "https://static.nike.com/a/images/t_PDP_1728_v1/f_auto,q_auto:eco/fa829b33-2547-4479-9e85-43f14e2ed593/ZM+VAPOR+16+ELITE+FG.png",
-              ]}
+              productImageUrls={SAMPLE_IMAGES}
               price={product.price}
             />
           </MotionDiv>
@@ -106,10 +105,7 @@ export const ProductsContainer = ({ categoryId }: ProductsContainerProps) => {
       {(hasNextPage || isLoading) && (
         <div className="grid lg:grid-cols-3 grid-cols-2 md:gap-x-6 gap-x-2 gap-y-4 w-full">
           {[...Array(PAGE_SIZE)].map((_, index) => (
-            <div
-              ref={index === 0 ? loaderRef : null}  // Attach ref to the first skeleton card
-              key={index}
-            >
+            <div ref={index === 0 ? loaderRef : null} key={index}>
               <ProductCardSkeleton />
             </div>
           ))}

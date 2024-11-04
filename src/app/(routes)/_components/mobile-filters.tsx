@@ -13,7 +13,7 @@ import { IoFilterSharp } from "react-icons/io5";
 import { Button } from "../../../components/ui/button";
 import { Filters } from "./filters";
 import { Filter } from "../../../../types/filters";
-import { useShowFilters } from "@/app/(routes)/store/useShowFilters";
+import { useShowFilters } from "@/app/(routes)/_store/useShowFilters";
 import {VisuallyHidden} from "@radix-ui/react-visually-hidden"
 import { cn } from "@/lib/utils";
 interface MobileFilterProps{

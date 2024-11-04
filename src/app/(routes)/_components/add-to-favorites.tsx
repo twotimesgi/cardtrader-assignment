@@ -1,5 +1,5 @@
 import { Tooltip, TooltipContent, TooltipTrigger } from "../../../components/ui/tooltip";
-import { useState } from "react";
+import { useState, MouseEvent } from "react";
 import { PiHeartStraight, PiHeartStraightFill } from "react-icons/pi";
 import { toast } from "sonner";
 
@@ -7,26 +7,28 @@ interface AddToFavoritesProps {
   id: string;
 }
 
-export const AddToFavorites = ({ id }: AddToFavoritesProps) => {
-  const [isFavorite, setIsFavorite] = useState(false);
+export const AddToFavorites = ({ id }: AddToFavoritesProps): JSX.Element => {
+  const [isFavorite, setIsFavorite] = useState<boolean>(false);
 
-  const addFav = (e :React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
-    e.preventDefault()
-    //TODO: implement mutation to add to favorites
-    setIsFavorite((prev) => !prev);
-    toast.success(`Product has been ${isFavorite?"removed from":"added to"} favorites`)
-}
+  const toggleFavorite = (e: MouseEvent<HTMLButtonElement>): void => {
+    e.preventDefault();
+    setIsFavorite((prevIsFavorite: boolean) => {
+      const newStatus: boolean = !prevIsFavorite;
+      toast.success(`Product has been ${newStatus ? "added to" : "removed from"} favorites`);
+      return newStatus;
+    });
+  };
 
   return (
     <div className="absolute top-2 right-2 z-50">
       <Tooltip>
         <TooltipTrigger asChild>
-          <button onClick={(e) => addFav(e)} className="bg-white p-2">
-            {isFavorite ? <PiHeartStraightFill size={20}/> : <PiHeartStraight size={20}/>}
+          <button onClick={toggleFavorite} className="bg-white p-2" aria-label="Toggle favorite">
+            {isFavorite ? <PiHeartStraightFill size={20} /> : <PiHeartStraight size={20} />}
           </button>
         </TooltipTrigger>
         <TooltipContent>
-          <p>Add to favorites</p>
+          <p>{isFavorite ? "Remove from favorites" : "Add to favorites"}</p>
         </TooltipContent>
       </Tooltip>
     </div>
