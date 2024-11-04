@@ -2,21 +2,12 @@
 import { ProductCard } from "@/app/(routes)/_components/product-card";
 import { MotionDiv } from "@/components/motion-div";
 import { Product } from "@prisma/client";
-import { useQuery } from "@tanstack/react-query";
-import { useEffect, useState } from "react";
+import { useInfiniteQuery } from "@tanstack/react-query";
+import { useEffect, useRef } from "react";
 import { useSearchParams } from "next/navigation";
 import { ExclamationTriangleIcon } from "@radix-ui/react-icons";
 import { ProductCardSkeleton } from "@/components/skeletons/product-card-skeleton";
 import { getProducts } from "../api/getProducts";
-import {
-  Pagination,
-  PaginationContent,
-  PaginationEllipsis,
-  PaginationItem,
-  PaginationLink,
-  PaginationNext,
-  PaginationPrevious,
-} from "@/components/ui/pagination";
 import { PAGE_SIZE } from "../../../../const";
 
 interface ProductsContainerProps {
@@ -24,40 +15,49 @@ interface ProductsContainerProps {
   categoryName: string;
 }
 
-
 export const ProductsContainer = ({ categoryId }: ProductsContainerProps) => {
   const searchParams = useSearchParams();
-  const [currentPage, setCurrentPage] = useState(1);
-  const [skip, setSkip] = useState(0);
+  const loaderRef = useRef<HTMLDivElement | null>(null);
 
-  const { data, isLoading, isError, refetch } = useQuery<{
-    products: Product[];
-    count: number;
-  }>({
-    queryKey: ["products", categoryId, skip, searchParams.toString()],
-    queryFn: () =>
+  // Infinite Query to fetch products
+  const {
+    data,
+    isLoading,
+    isError,
+    fetchNextPage,
+    hasNextPage,
+  } = useInfiniteQuery({
+    queryKey: ["products", categoryId, searchParams.toString()],
+    queryFn: ({ pageParam = 0 }) =>
       getProducts({
-        searchParams: searchParams,
-        skip,
+        searchParams,
+        skip: pageParam * PAGE_SIZE,
+        take: PAGE_SIZE,
         categoryId: categoryId,
       }),
+    initialPageParam: 0, // Start with the first page
+    getNextPageParam: (lastPage, allPages) => {
+      const totalFetched = allPages.flatMap((page) => page.products).length;
+      return totalFetched < lastPage.count ? allPages.length : undefined;
+    },
   });
 
+  // Intersection observer to trigger loading more data
   useEffect(() => {
-    setSkip((currentPage - 1) * PAGE_SIZE);
-  }, [currentPage]);
+    if (!loaderRef.current || !hasNextPage) return;
 
-  useEffect(() => {
-    refetch();
-  }, [searchParams, skip]);
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting) {
+          fetchNextPage();
+        }
+      },
+      { threshold: 0.1 } // Trigger when 10% visible
+    );
 
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [searchParams]);
-
-  const handlePageChange = (page: number) => {
-    setCurrentPage(page);
-  };
+    observer.observe(loaderRef.current);
+    return () => observer.disconnect();
+  }, [fetchNextPage, hasNextPage]);
 
   if (isError) {
     return (
@@ -68,24 +68,12 @@ export const ProductsContainer = ({ categoryId }: ProductsContainerProps) => {
     );
   }
 
-  if (isLoading) {
-    return (
-      <div className="grid lg:grid-cols-3 grid-cols-2 gap-x-2 md:gap-x-4 gap-y-4 w-full">
-        {[...Array(PAGE_SIZE)].map((_, index) => (
-          <ProductCardSkeleton key={index} />
-        ))}
-      </div>
-    );
-  }
-
-  const totalPages = Math.ceil((data?.count || 0) / PAGE_SIZE);
-  const startPage = Math.max(1, currentPage - 1);
-  const endPage = Math.min(totalPages, currentPage + 1);
+  const allProducts = data?.pages.flatMap((page) => page.products) || [];
 
   return (
     <>
-      <div className="grid lg:grid-cols-3 grid-cols-2 gap-x-2  md:gap-x-4 gap-y-4 w-full">
-        {data?.products.map((product: Product) => (
+      <div className="grid lg:grid-cols-3 grid-cols-2 md:gap-x-6 gap-x-2 gap-y-4 w-full">
+        {allProducts.map((product: Product) => (
           <MotionDiv
             key={product.id}
             variants={{
@@ -110,67 +98,15 @@ export const ProductsContainer = ({ categoryId }: ProductsContainerProps) => {
           </MotionDiv>
         ))}
       </div>
-      {totalPages > 1 && (
-        <Pagination>
-          <PaginationContent>
-            <PaginationItem>
-              <PaginationPrevious
-                href="#"
-                onClick={() => handlePageChange(currentPage - 1)}
-                aria-disabled={currentPage === 1}
-                className={
-                  currentPage === 1 ? "pointer-events-none opacity-30" : undefined
-                }
-              />
-            </PaginationItem>
-            {startPage > 1 && (
-              <PaginationItem>
-                <PaginationLink href="#" onClick={() => handlePageChange(1)}>
-                  1
-                </PaginationLink>
-              </PaginationItem>
-            )}
-            {startPage > 2 && <PaginationEllipsis />}
-            {Array.from({ length: endPage - startPage + 1 }, (_, index) => {
-              const pageNumber = startPage + index;
-              return (
-                <PaginationItem key={pageNumber}>
-                  <PaginationLink
-                    href="#"
-                    onClick={() => handlePageChange(pageNumber)}
-                    aria-disabled={currentPage === pageNumber}
-                    className={
-                      currentPage === pageNumber
-                        ? "pointer-events-none bg-primary/5"
-                        : undefined
-                    }
-                  >
-                    {pageNumber}
-                  </PaginationLink>
-                </PaginationItem>
-              );
-            })}
-            {endPage < totalPages - 1 && <PaginationEllipsis />}
-            {endPage < totalPages && (
-              <PaginationItem>
-                <PaginationLink href="#" onClick={() => handlePageChange(totalPages)}>
-                  {totalPages}
-                </PaginationLink>
-              </PaginationItem>
-            )}
-            <PaginationItem>
-              <PaginationNext
-                href="#"
-                onClick={() => handlePageChange(currentPage + 1)}
-                aria-disabled={currentPage === totalPages}
-                className={
-                  currentPage === totalPages ? "pointer-events-none opacity-30" : undefined
-                }
-              />
-            </PaginationItem>
-          </PaginationContent>
-        </Pagination>
+      {isLoading && (
+      <div className="grid lg:grid-cols-3 grid-cols-2 md:gap-x-6 gap-x-2 gap-y-4 w-full">
+          {[...Array(PAGE_SIZE)].map((_, index) => (
+            <ProductCardSkeleton key={index} />
+          ))}
+        </div>
       )}
+      {/* Loader element for triggering the Intersection Observer */}
+      <div ref={loaderRef} className="h-20" />
     </>
   );
 };
