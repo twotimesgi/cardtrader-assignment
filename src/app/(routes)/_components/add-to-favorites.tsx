@@ -12,11 +12,8 @@ export const AddToFavorites = ({ id }: AddToFavoritesProps): JSX.Element => {
 
   const toggleFavorite = (e: MouseEvent<HTMLButtonElement>): void => {
     e.preventDefault();
-    setIsFavorite((prevIsFavorite: boolean) => {
-      const newStatus: boolean = !prevIsFavorite;
-      toast.success(`Product has been ${newStatus ? "added to" : "removed from"} favorites`);
-      return newStatus;
-    });
+    setIsFavorite((prevIsFavorite: boolean) => !prevIsFavorite);
+    toast.success(`Product has been ${isFavorite ? "removed from" : "added to"} favorites`);
   };
 
   return (

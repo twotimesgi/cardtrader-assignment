@@ -6,12 +6,13 @@ import Image from "next/image";
 import { motion } from "framer-motion";
 import { AddToFavorites } from "./add-to-favorites";
 import { LiaImage } from "react-icons/lia";
+import { ProductImage } from "@prisma/client";
 
 interface ProductCardProps {
   id: string;
   model: string;
   brand: string;
-  productImageUrls: string[];
+  productImageUrls: ProductImage[];
   price: number;
 }
 
@@ -33,7 +34,7 @@ export const ProductCard = ({
         {/* TODO: replace with Image component fron next*/}
         {productImageUrls[0] ? (
           <Image
-            src={productImageUrls[0]}
+            src={productImageUrls[0].url}
             alt={`${brand} ${model}`}
             width={400}
             height={400}

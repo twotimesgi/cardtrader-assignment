@@ -39,7 +39,6 @@ model Product {
 model ProductImage {
   id          String   @id @default(uuid())
   url         String   // URL or path to the image
-  altText     String?  // Optional field for accessibility or alternative text
   productId   String
   product     Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
 
