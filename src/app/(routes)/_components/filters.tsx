@@ -9,6 +9,7 @@ import { capitalize } from "@/lib/format";
 import { Filter as FilterType } from "../../../../types/filters";
 import { cn } from "@/lib/utils";
 import { Filter } from "./filter";
+import { Category } from "@prisma/client";
 
 // Define animation variants
 const filterVariants = {
