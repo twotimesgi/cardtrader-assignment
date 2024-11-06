@@ -32,6 +32,9 @@ Ensure the following are installed on your machine:
    ```bash
    npm install
 
+3. **Setup ENV variables**:
+Create a new .env file and add the environment variables included in the email.
+
 ## Running the Project
 
 1. **Start the Development Server**:
