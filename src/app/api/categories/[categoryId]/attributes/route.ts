@@ -13,17 +13,15 @@ const schema = z.object({
     .optional(),
 });
 
+// POST endpoint to create a new attribute
 export const POST = async (
   req: Request,
   { params }: { params: { categoryId: string } }
 ) => {
   try {
-    //TODO: Authenticate request
-    // Parse and validate the request body
     const body = schema.parse(await req.json());
     const { categoryId } = params;
 
-    // Insert product into the database
     const product = await db.attribute.create({
       data: {
         name: body.name,
@@ -34,18 +32,15 @@ export const POST = async (
 
     return NextResponse.json(product);
   } catch (error: any) {
-    // Log the exact error for debugging
     console.log(
       "POST /api/categories/[categoryId]/attributes/route.ts error:",
       JSON.stringify(error)
     );
 
-    // Handle Zod validation errors
     if (error instanceof z.ZodError) {
       return NextResponse.json({ errors: error.issues }, { status: 400 });
     }
 
-    // Handle Prisma errors
     if (
       error instanceof Prisma.PrismaClientKnownRequestError ||
       error instanceof Prisma.PrismaClientInitializationError ||
@@ -54,7 +49,52 @@ export const POST = async (
       return handlePrismaError(error);
     }
 
-    // Handle unknown errors
+    return NextResponse.json(
+      { error: "Internal Server Error" },
+      { status: 500 }
+    );
+  }
+};
+
+// GET endpoint to retrieve all attributes of a specific category
+export const GET = async (
+  req: Request,
+  { params }: { params: { categoryId: string } }
+) => {
+  try {
+    const { categoryId } = await params;
+
+    // Fetch all attributes for the given categoryId
+    const attributes = await db.attribute.findMany({
+      where: {
+        categoryId,
+      },
+      select: {
+        id: true,
+        name: true,
+        required: true,
+        categoryId: true,
+      },
+      orderBy: {
+        required: "desc", // Optional: Order required attributes first
+      },
+    });
+
+    return NextResponse.json(attributes);
+  } catch (error: any) {
+    console.log(
+      "GET /api/categories/[categoryId]/attributes/route.ts error:",
+      JSON.stringify(error)
+    );
+
+    if (
+      error instanceof Prisma.PrismaClientKnownRequestError ||
+      error instanceof Prisma.PrismaClientInitializationError ||
+      error instanceof Prisma.PrismaClientValidationError
+    ) {
+      return handlePrismaError(error);
+    }
+
     return NextResponse.json(
       { error: "Internal Server Error" },
       { status: 500 }

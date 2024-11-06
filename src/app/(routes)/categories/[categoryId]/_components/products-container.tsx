@@ -3,11 +3,11 @@
 import { useInfiniteQuery } from "@tanstack/react-query";
 import { useSearchParams } from "next/navigation";
 import { ExclamationTriangleIcon } from "@radix-ui/react-icons";
-import { ProductCard } from "@/app/(routes)/_components/product-card";
+import { ProductCard } from "@/app/(routes)/categories/[categoryId]/_components/product-card";
 import { MotionDiv } from "@/components/motion-div";
-import { ProductCardSkeleton } from "@/components/skeletons/product-card-skeleton";
 import { getProducts } from "../_api/getProducts";
-import { PAGE_SIZE } from "../../../../const";
+import { ProductCardSkeleton } from "@/app/(routes)/categories/[categoryId]/_components/skeletons/product-card-skeleton";
+import { PAGE_SIZE } from "../../../../../../const";
 import { useIntersectionObserver } from "../_hooks/useIntersectionObserver";
 import { useEffect } from "react";
 
@@ -56,7 +56,7 @@ export const ProductsContainer = ({ categoryId, categoryName }: ProductsContaine
 
   if (isError) {
     return (
-      <div className="flex items-center justify-center flex-col text-muted-foreground gap-2">
+      <div className="flex items-center justify-center flex-col text-muted-foreground gap-2 py-[32vh]">
         <ExclamationTriangleIcon className="size-4" />
         <span className="text-sm">Error loading products.</span>
       </div>
@@ -68,11 +68,11 @@ export const ProductsContainer = ({ categoryId, categoryName }: ProductsContaine
 
   return (
     <div>
-      <div className="text-xl mb-4">{categoryName}</div>
+      <h1 className="text-xl mb-4">{categoryName}</h1>
 
-      {/* No products found or loading message */}
+      {/* No products found*/}
       {allProducts.length === 0 && !isLoading && (
-        <div className="flex items-center justify-center text-muted-foreground">
+        <div className="flex items-center justify-center text-muted-foreground py-[32vh]">
           <span className="text-sm">No products found.</span>
         </div>
       )}

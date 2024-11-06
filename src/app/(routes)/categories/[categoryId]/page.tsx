@@ -1,10 +1,10 @@
-import { Filters } from "@/app/(routes)/_components/filters";
-import { ProductsContainer } from "../../_components/products-container";
+import { Filters } from "@/app/(routes)/categories/[categoryId]/_components/filters";
+import { ProductsContainer } from "./_components/products-container";
 import { MotionDiv } from "@/components/motion-div";
 import { getFilters } from "../../../../../actions/getFilters";
 import { getCategory } from "../../../../../actions/getCategory";
-import { SearchBar } from "../../_components/search-bar";
-import { MobileFilters } from "@/app/(routes)/_components/mobile-filters";
+import { SearchBar } from "./_components/search-bar";
+import { MobileFilters } from "@/app/(routes)/categories/[categoryId]/_components/mobile-filters";
 import { Filter } from "../../../../../types/filters";
 import { Category } from "@prisma/client";
 
