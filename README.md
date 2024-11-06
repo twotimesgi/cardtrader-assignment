@@ -1,36 +1,58 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Project Name
 
-## Getting Started
+This project is a sample e-commerce system built with [Prisma](https://www.prisma.io/), MySql and NextJs demonstrating a setup with categories, products, and associated attributes.
 
-First, run the development server:
+## Table of Contents
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+1. [Prerequisites](#prerequisites)
+2. [Project Setup](#project-setup)
+3. [Running the Project](#running-the-project)
+4. [Features](#features)
+5. [Notes](#notes)
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+---
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Prerequisites
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Ensure the following are installed on your machine:
 
-## Learn More
+- [Node.js](https://nodejs.org/) (version 14 or higher)
 
-To learn more about Next.js, take a look at the following resources:
+## Project Setup
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+1. **Clone the repository**:
+   ```bash
+   git clone <repository-url>
+   cd <repository-name>
+   
+2. **Install dependencies**:
+   Run the following command to install the necessary packages:
+   ```bash
+   npm install
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Running the Project
 
-## Deploy on Vercel
+1. **Start the Development Server**:
+   Run the following command to start the server:
+   ```bash
+   npm run dev
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+The application should now be running on `http://localhost:3000`.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Features
+
+- **Category Page Showing All Products**: View all products within a selected category.
+- **Filters**: Filter products by various attributes such as size, color, and material.
+- **Search with Debounce**: Search for products within a category with a debounce mechanism to minimize request overload.
+- **Infinite Scroll**: Automatically load more products as the user scrolls, providing a seamless browsing experience.
+- **Product Creation Page**: Create new products with necessary details and attributes.
+- **Image Upload and Compression**: Upload images with automatic compression for optimized storage.
+- **Category Creation Page**: Create new categories with customizable attributes, each with an option to mark attributes as required or optional.
+
+## Notes
+
+- **Environment Variables**: Required environment variables, including `DATABASE_URL`, are already provided inside .env file.
+- **Database Access**: The project is set up to work with the pre-configured database.
+- **Prisma Studio**: If you need to view or modify the database, you can optionally open Prisma Studio with:
+  ```bash
+  npx prisma studio
