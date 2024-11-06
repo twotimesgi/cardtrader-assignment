@@ -3,46 +3,60 @@ const db = new PrismaClient();
 
 async function main() {
   try {
-    // Create two categories
+    // Create categories
     await db.category.createMany({
       data: [
-        { name: "Casual Wear" },
-        { name: "Formal Wear" },
+        { name: "Jeans" },
+        { name: "Glasses" },
+        { name: "T-Shirts" },
+        { name: "Shoes" },
       ],
     });
-
     console.log("Success seeding categories.");
 
-    // Fetch categories
+    // Fetch created categories
     const categories = await db.category.findMany({
       where: {
-        name: { in: ["Casual Wear", "Formal Wear"] },
+        name: { in: ["Jeans", "Glasses", "T-Shirts", "Shoes"] },
       },
     });
 
     // Define attribute options
     const sizes = ["S", "M", "L", "XL"];
-    const colors = ["Red", "Blue", "Green", "Black", "White"];
-    const fabrics = ["Cotton", "Polyester", "Denim", "Wool"];
-    const materials = ["Silk", "Linen", "Leather", "Velvet"];
+    const colors = ["Red", "Blue", "Black", "White", "Gray"];
+    const materialsJeans = ["Denim", "Cotton", "Polyester"];
+    const materialsShoes = ["Leather", "Canvas", "Suede"];
+    const frameMaterials = ["Metal", "Plastic", "Wood"];
 
-    // Define attributes for the two categories and create attributes in the database
+    // Define attributes for each category and create attributes in the database
     const attributesMap = {};
     for (const category of categories) {
       const attributesData = [];
-      if (category.name === "Casual Wear") {
+      if (category.name === "Jeans") {
+        attributesData.push(
+          { name: "Size", categoryId: category.id, required: true },
+          { name: "Color", categoryId: category.id, required: true },
+          { name: "Material", categoryId: category.id, required: false }
+        );
+      } else if (category.name === "Glasses") {
+        attributesData.push(
+          { name: "Frame Material", categoryId: category.id, required: true },
+          { name: "Color", categoryId: category.id, required: false }
+        );
+      } else if (category.name === "T-Shirts") {
         attributesData.push(
           { name: "Size", categoryId: category.id, required: true },
           { name: "Color", categoryId: category.id, required: true },
           { name: "Fabric", categoryId: category.id, required: false }
         );
-      } else if (category.name === "Formal Wear") {
+      } else if (category.name === "Shoes") {
         attributesData.push(
           { name: "Size", categoryId: category.id, required: true },
           { name: "Color", categoryId: category.id, required: true },
           { name: "Material", categoryId: category.id, required: false }
         );
       }
+
       await db.attribute.createMany({ data: attributesData });
       console.log(`Success seeding attributes for ${category.name}.`);
 
@@ -54,12 +68,8 @@ async function main() {
     }
 
     // Helper function to generate random products
-    const generateRandomProducts = (categoryId, numProducts, categoryName) => {
-      const models = categoryName === "Casual Wear"
-        ? ["Hoodie", "T-Shirt", "Jeans", "Sneakers", "Baseball Cap"]
-        : ["Blazer", "Dress Shirt", "Slacks", "Oxfords", "Tie"];
+    const generateRandomProducts = (categoryId, numProducts, models) => {
       const brands = ["Brand X", "Brand Y", "Brand Z", "Brand Q"];
-      
       const products = [];
       for (let i = 0; i < numProducts; i++) {
         const model = models[Math.floor(Math.random() * models.length)];
@@ -76,18 +86,26 @@ async function main() {
       return products;
     };
 
-    // Seed 25 products for each category, along with their attributes
-    for (const category of categories) {
-      const productsData = generateRandomProducts(category.id, 25, category.name);
-      await db.product.createMany({ data: productsData });
-      console.log(`Success seeding 25 products for ${category.name}.`);
+    // Models for each category
+    const categoryModels = {
+      "Jeans": ["Skinny", "Bootcut", "Straight", "Relaxed"],
+      "Glasses": ["Aviator", "Wayfarer", "Round", "Square"],
+      "T-Shirts": ["V-Neck", "Crew Neck", "Polo", "Tank Top"],
+      "Shoes": ["Sneakers", "Boots", "Loafers", "Sandals"],
+    };
 
-      // Fetch the saved products
+    // Seed products for each category
+    for (const category of categories) {
+      const productsData = generateRandomProducts(category.id, 15, categoryModels[category.name]);
+      await db.product.createMany({ data: productsData });
+      console.log(`Success seeding products for ${category.name}.`);
+
+      // Fetch saved products to add attributes and images
       const products = await db.product.findMany({
         where: { categoryId: category.id },
       });
 
-      // Seed attribute values for each product
+      // Seed attribute values and images for each product
       for (const product of products) {
         const attributeValues = [];
         for (const attribute of attributesMap[category.id]) {
@@ -103,22 +121,39 @@ async function main() {
               attributeId: attribute.id,
               value: colors[Math.floor(Math.random() * colors.length)],
             });
-          } else if (attribute.name === "Fabric" && category.name === "Casual Wear") {
+          } else if (attribute.name === "Material" && category.name === "Jeans") {
             attributeValues.push({
               productId: product.id,
               attributeId: attribute.id,
-              value: fabrics[Math.floor(Math.random() * fabrics.length)],
+              value: materialsJeans[Math.floor(Math.random() * materialsJeans.length)],
             });
-          } else if (attribute.name === "Material" && category.name === "Formal Wear") {
+          } else if (attribute.name === "Material" && category.name === "Shoes") {
             attributeValues.push({
               productId: product.id,
               attributeId: attribute.id,
-              value: materials[Math.floor(Math.random() * materials.length)],
+              value: materialsShoes[Math.floor(Math.random() * materialsShoes.length)],
+            });
+          } else if (attribute.name === "Frame Material" && category.name === "Glasses") {
+            attributeValues.push({
+              productId: product.id,
+              attributeId: attribute.id,
+              value: frameMaterials[Math.floor(Math.random() * frameMaterials.length)],
             });
           }
         }
+
         await db.productAttributeValue.createMany({ data: attributeValues });
         console.log(`Success seeding attributes for product ${product.model}.`);
+
+        if (Math.random() > 0.3) { // 70% chance to add images
+          await db.productImage.createMany({
+            data: [
+              { productId: product.id, url: `https://picsum.photos/200/200?random=${Math.floor(Math.random() * 1000)}` },
+              { productId: product.id, url: `https://picsum.photos/200/200?random=${Math.floor(Math.random() * 1000)}` },
+            ],
+          });
+          console.log(`Success seeding images for product ${product.model}.`);
+        }
       }
     }
 
