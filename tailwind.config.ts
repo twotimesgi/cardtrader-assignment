@@ -1,3 +1,4 @@
+const {withUt} = require("uploadthing/tw");
 import type { Config } from "tailwindcss";
 
 const config: Config = {
