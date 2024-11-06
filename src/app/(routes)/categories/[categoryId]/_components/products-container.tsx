@@ -22,11 +22,9 @@ const productVariants = {
   visible: { opacity: 1, x: 0, transition: { duration: 0.4 } },
 };
 
-
 export const ProductsContainer = ({ categoryId, categoryName }: ProductsContainerProps) => {
   const searchParams = useSearchParams();
   const search = searchParams.get("search") || ""; // Get the `search` parameter explicitly
-  
   
   const {
     data,
@@ -47,6 +45,7 @@ export const ProductsContainer = ({ categoryId, categoryName }: ProductsContaine
       }),
     initialPageParam: 0,
     getNextPageParam: (lastPage, allPages) => {
+      if (!lastPage) return undefined;
       const totalFetched = allPages.flatMap((page) => page.products).length;
       return totalFetched < lastPage.count ? allPages.length : undefined;
     },
@@ -64,7 +63,7 @@ export const ProductsContainer = ({ categoryId, categoryName }: ProductsContaine
   }
 
   // Combine all pages of products
-  const allProducts = data?.pages.flatMap((page) => page.products) || [];
+  const allProducts = data?.pages?.flatMap((page) => page.products) || [];
 
   return (
     <div>

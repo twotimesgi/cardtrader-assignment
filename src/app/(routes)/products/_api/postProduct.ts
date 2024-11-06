@@ -1,19 +1,22 @@
-import { Product } from "@prisma/client";
+import { Attribute, Product } from "@prisma/client";
 import axios from "axios";
-// src/app/routes/products/_api/postProduct.ts
 
-// Define the type for product data
 export interface ProductData {
   model: string;
   brand: string;
   price: number;
   categoryId: string;
   attributes: { attributeId: string; value: string }[];
+  images: string[];
 }
-
 
 export const postProduct = async (productData: ProductData): Promise<Product> => {
   try {
+    //Removing empty optional attributes left empty
+    productData = {
+      ...productData,
+      attributes: productData.attributes.filter((attr) => !!attr.value)
+    }
     const { data } = await axios.post("/api/products", productData);
     return data;
   } catch (error) {

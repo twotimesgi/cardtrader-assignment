@@ -18,6 +18,7 @@ const FileUploader = ({ imageUrls, setImageUrls, form }: FileUploaderProps) => (
       endpoint="productImages"
       onChange={(urls) => {
         if (urls && urls.length > 0) {
+          // Update image URLs with the new ones
           const newUrls = [...imageUrls, ...urls];
           setImageUrls(newUrls);
           form.setValue("images", newUrls);

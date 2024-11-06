@@ -13,11 +13,13 @@ import { Category, Product, Attribute } from "@prisma/client";
 import { getAttributes } from "../_api/getAttributes";
 import { postProduct } from "../_api/postProduct";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Loader } from "lucide-react";
+import { Loader, X } from "lucide-react";
 import CategorySelector from "./category-selector";
 import TextInput from "./text-input";
 import FileUploader from "./file-uploader";
 import AttributeInput from "./attribute-input";
+import Image from "next/image";
+import { ImagePreviews } from "./image-previews";
 
 const baseSchema = z.object({
   model: z.string().min(1, { message: "Model is required" }),
@@ -30,7 +32,6 @@ const baseSchema = z.object({
 type FormValues = z.infer<typeof baseSchema> & {
   attributes: { attributeId: string; value: string }[];
 };
-
 
 export const CreationForm = ({ categories }: { categories: Category[] }) => {
   const router = useRouter();
@@ -77,7 +78,7 @@ export const CreationForm = ({ categories }: { categories: Category[] }) => {
       attributes: [],
       images: [],
     },
-    mode: "onChange", // Enable real-time validation
+    mode: "onChange",
     reValidateMode: "onChange",
   });
 
@@ -86,10 +87,8 @@ export const CreationForm = ({ categories }: { categories: Category[] }) => {
     name: "attributes",
   });
 
-  useEffect(() => {
-    console.log(form.formState.errors)
-  }, [form.formState.errors])
   // Watch fields to trigger re-render on change
+  const watchedFields = form.watch(); // Watch all fields
 
   useEffect(() => {
     if (selectedCategoryId && attributes.length) {
@@ -120,23 +119,29 @@ export const CreationForm = ({ categories }: { categories: Category[] }) => {
 
   const isMutationLoading = mutation.status === "pending";
 
+  const removeImage = (index: number) => {
+    const newImageUrls = [...imageUrls];
+    newImageUrls.splice(index, 1);
+    setImageUrls(newImageUrls);
+    form.setValue("images", newImageUrls);
+    form.trigger("images");
+  };
+
   return (
     <div className="max-w-[600px] w-full m-auto md:items-center md:justify-center h-full p-6">
       <h1 className="text-2xl mb-4">Create product</h1>
-      
       <FileUploader
         imageUrls={imageUrls}
         setImageUrls={(urls) => {
           setImageUrls(urls);
-          form.setValue("images", urls); // Ensure form state is updated
+          form.setValue("images", urls);
           form.trigger("images"); // Validate the images field after updating
         }}
+        
         form={form}
       />
-      
-      <div className="text-xs text-muted-foreground mt-4">
-        Recommended 16:9 aspect ratio
-      </div>
+
+      <ImagePreviews imageUrls={imageUrls} removeImage={removeImage}/>
 
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-3 mt-8">
@@ -147,6 +152,7 @@ export const CreationForm = ({ categories }: { categories: Category[] }) => {
               setSelectedCategoryId(value);
               form.setValue("categoryId", value);
               form.trigger("categoryId"); // Trigger validation for categoryId
+              form.trigger("attributes");
             }}
           />
 
@@ -166,6 +172,7 @@ export const CreationForm = ({ categories }: { categories: Category[] }) => {
 
           <TextInput
             label="Price"
+            type="number"
             placeholder="e.g. '100'"
             required
             registration={form.register("price", { valueAsNumber: true })}
@@ -191,6 +198,7 @@ export const CreationForm = ({ categories }: { categories: Category[] }) => {
           <div className="flex items-center justify-end">
             <Button
               className="mt-10"
+             
               type="submit"
               disabled={!form.formState.isValid || isMutationLoading}
             >

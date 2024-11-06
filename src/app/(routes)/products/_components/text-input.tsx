@@ -7,10 +7,11 @@ type TextInputProps = {
   placeholder: string;
   required?: boolean;
   disabled?: boolean;
-  registration: UseFormRegisterReturn; // Use this type instead
+  registration: UseFormRegisterReturn; 
+  type?: "text" | "number";
 };
 
-const TextInput = ({ label, placeholder, required = false, disabled, registration }: TextInputProps) => (
+const TextInput = ({ label, placeholder, required = false, disabled, registration, type="text" }: TextInputProps) => (
   <FormItem>
     <FormLabel className="w-full flex justify-between">
       <span>{label}</span>

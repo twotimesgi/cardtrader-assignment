@@ -32,12 +32,14 @@ export const ProductCard = ({
     <Link href={`/products/${id}`} className="block w-full h-auto">
       <div className="relative w-full">
         {/* TODO: replace with Image component fron next*/}
-        {productImageUrls[0] ? (
+        {productImageUrls && productImageUrls[0] ? (
           <Image
+          loading="lazy"
             src={productImageUrls[0].url}
             alt={`${brand} ${model}`}
-            width={400}
-            height={400}
+            width={200}
+            height={200}
+            
             className="object-cover object-center aspect-square w-full"
           />
         ) : (
