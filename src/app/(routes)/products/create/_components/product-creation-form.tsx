@@ -128,7 +128,7 @@ export const CreationForm = ({ categories }: { categories: Category[] }) => {
   };
 
   return (
-    <div className="max-w-[600px] w-full m-auto md:items-center md:justify-center h-full p-6">
+    <div>
       <h1 className="text-2xl mb-4">Create product</h1>
       <FileUploader
         imageUrls={imageUrls}

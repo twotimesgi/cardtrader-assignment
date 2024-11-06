@@ -38,7 +38,7 @@ export const FileUpload = ({
       endpoint={endpoint}
       appearance={{
         button:
-          "ut-ready:bg-foreground ut-uploading:cursor-not-allowed bg-foreground text-sm font-medium after:bg-orange-400 bg-primary text-primary-foreground shadow hover:bg-primary/90 h-9 px-4 py-2",
+          "ut-ready:bg-foreground rounded-none ut-uploading:cursor-not-allowed bg-foreground text-sm font-medium after:bg-orange-400 bg-primary text-primary-foreground shadow hover:bg-primary/90 h-9 px-4 py-2",
         container: "w-full rounded-none",
       }}
       onClientUploadComplete={(res) => {
@@ -47,7 +47,7 @@ export const FileUpload = ({
       }}
       onBeforeUploadBegin={async (files) => {
         try {
-          const compressedFiles = await compressFiles(files); // Await all compressed files
+          const compressedFiles = await compressFiles(files); 
           return compressedFiles;
         } catch (error) {
           console.error("Compression failed:", error);
