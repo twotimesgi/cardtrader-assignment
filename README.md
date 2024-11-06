@@ -8,7 +8,9 @@ This project is a sample e-commerce system built with [Prisma](https://www.prism
 2. [Project Setup](#project-setup)
 3. [Running the Project](#running-the-project)
 4. [Features](#features)
-5. [Notes](#notes)
+5. [Routes](#routes)
+6. [Category IDs](#category-ids)
+7. [Notes](#notes)
 
 ---
 
@@ -48,6 +50,25 @@ The application should now be running on `http://localhost:3000`.
 - **Product Creation Page**: Create new products with necessary details and attributes.
 - **Image Upload and Compression**: Upload images with automatic compression for optimized storage.
 - **Category Creation Page**: Create new categories with customizable attributes, each with an option to mark attributes as required or optional.
+
+## Routes
+The following routes are available in the project:
+
+- **/categories/[categoryId]**: Displays a list of all products within a specific category. Visit this route and substitute categoryId with one from below.
+- **/products/create**: A page to create a new product.
+- **/categories/new**: A page to create new categories. Allows you to define attributes for the category, with options to set them as required or optional.
+
+## Category IDs
+
+Here are the category IDs that can be used in the application for reference:
+
+| Category         | ID                                     |
+|------------------|----------------------------------------|
+| Jeans            | 21c407a3-537d-4dbb-843e-c4aebd02ae92   |
+| T-Shirts         | bfb4e045-672e-4d4a-a2d6-800d7acba25d   |
+| Glasses          | ca65a7d5-47dc-420d-9cca-9b1150813222   |
+| Shoes            | df58419f-4e0b-4240-84b1-28ca96f2dbee   |
+
 
 ## Notes
 
