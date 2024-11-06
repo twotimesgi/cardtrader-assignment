@@ -1,4 +1,4 @@
-# Project Name
+# Cardtrader-assignment
 
 This project is a sample e-commerce system built with [Prisma](https://www.prisma.io/), MySql and NextJs demonstrating a setup with categories, products, and associated attributes.
 
