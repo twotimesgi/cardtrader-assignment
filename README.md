@@ -75,7 +75,6 @@ Here are the category IDs that can be used in the application for reference:
 
 ## Notes
 
-- **Environment Variables**: Required environment variables, including `DATABASE_URL`, are already provided inside .env file.
 - **Database Access**: The project is set up to work with the pre-configured database.
 - **Prisma Studio**: If you need to view or modify the database, you can optionally open Prisma Studio with:
   ```bash
