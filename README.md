@@ -48,6 +48,7 @@ The application should now be running on `http://localhost:3000`.
 
 - **Category Page Showing All Products**: View all products within a selected category.
 - **Filters**: Filter products by various attributes such as size, color, and material.
+- **Order by**: Order by creation date or price.
 - **Search with Debounce**: Search for products within a category with a debounce mechanism to minimize request overload.
 - **Infinite Scroll**: Automatically load more products as the user scrolls, providing a seamless browsing experience.
 - **Product Creation Page**: Create new products with necessary details and attributes.
