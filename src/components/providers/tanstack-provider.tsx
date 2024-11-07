@@ -11,8 +11,6 @@ export const TanstackProvider = ({ children }: TanstackProviderProps) => {
   const queryClient = new QueryClient();
   return (
     <QueryClientProvider client={queryClient}>
-    {/* TODO: Remove React Query devtools */}
-      <ReactQueryDevtools initialIsOpen={false} />
       {children}
     </QueryClientProvider>
   );
