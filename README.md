@@ -68,7 +68,6 @@ Here are the category IDs that can be used in the application for reference:
 | Category         | ID                                     |
 |------------------|----------------------------------------|
 | Jeans            | b33863c9-ba5e-4745-a9d4-cb06a56b07d4   |
-| T-Shirts         | 373f8529-202c-4095-88b8-6a408abf5c0a   |
 | Glasses          | c142bd4e-8c99-4811-b956-aa84c643c850   |
 | Shoes            | 8e149008-2d68-43ee-83de-1f06e123688f   |
 
