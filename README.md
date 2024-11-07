@@ -59,7 +59,7 @@ The following routes are available in the project:
 
 - **/categories/[categoryId]**: Displays a list of all products within a specific category. Visit this route and substitute categoryId with one from below.
 - **/products/create**: A page to create a new product.
-- **/categories/new**: A page to create new categories. Allows you to define attributes for the category, with options to set them as required or optional.
+- **/categories/create**: A page to create new categories. Allows you to define attributes for the category, with options to set them as required or optional.
 
 ## Category IDs
 
