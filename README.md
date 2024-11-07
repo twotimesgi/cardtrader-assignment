@@ -67,14 +67,13 @@ Here are the category IDs that can be used in the application for reference:
 
 | Category         | ID                                     |
 |------------------|----------------------------------------|
-| Jeans            | 21c407a3-537d-4dbb-843e-c4aebd02ae92   |
-| T-Shirts         | bfb4e045-672e-4d4a-a2d6-800d7acba25d   |
-| Glasses          | ca65a7d5-47dc-420d-9cca-9b1150813222   |
-| Shoes            | df58419f-4e0b-4240-84b1-28ca96f2dbee   |
+| Jeans            | b33863c9-ba5e-4745-a9d4-cb06a56b07d4   |
+| T-Shirts         | 373f8529-202c-4095-88b8-6a408abf5c0a   |
+| Glasses          | c142bd4e-8c99-4811-b956-aa84c643c850   |
+| Shoes            | 8e149008-2d68-43ee-83de-1f06e123688f   |
 
 
 ## Notes
-- **ERROR 42000 (1226): User 'cardtraderhomework_methodbell' has exceeded the 'max_user_connections' resource (current value: 5)'**: I'm currently using [filess.io](https://filess.io/) free tier, and it really sucks. Please contact me if you get this error, I will provide you a new connection string on a better MySql host.
 - **Database Access**: The project is set up to work with the pre-configured database.
 - **Prisma Studio**: If you need to view or modify the database, you can optionally open Prisma Studio with:
   ```bash
