@@ -1,8 +1,13 @@
+import { Category } from "@prisma/client";
+import { getCategories } from "../../../actions/getCategories";
 
-export default  function Home() {
+export default async function Home() {
+  const categories = await getCategories();
   return (
+    
     <main>
-      Homepage
+      {categories.map((category : Category) => <div key={category.id}>{category.name} {category.id}</div>
+      )}
     </main>
   );
 }

@@ -104,15 +104,28 @@ export const GET = async (req: Request) => {
     const skip = parseInt(searchParams.get("skip") ?? "0");
     const take = parseInt(searchParams.get("take") ?? "10");
     const categoryId = searchParams.get("categoryId");
+    const orderByParam = searchParams.get("order_by");
+    const search = searchParams.get("search")?.trim() || ""; 
 
+    const searchFilter = search
+  ? {
+      OR: [
+        { model: { contains: search } },
+        { brand: { contains: search } },
+      ],
+    }: {}
+    
+
+    // Parse attribute filters from query params
     const attributes: { [attributeName: string]: string[] } = {};
     searchParams.forEach((value, key) => {
       if (key.startsWith("attribute_")) {
         const attributeName = key.replace("attribute_", "");
-        attributes[attributeName] = value.split(","); // Store multiple values for each attribute
+        attributes[attributeName] = value.split(",");
       }
     });
 
+    // Fetch required attributes
     const requiredAttributes = await db.attribute.findMany({
       where: {
         ...(categoryId && { categoryId }),
@@ -126,6 +139,7 @@ export const GET = async (req: Request) => {
 
     const requiredAttributeIds = requiredAttributes.map((attr) => attr.id);
 
+    // Base filter for required attributes
     const baseFilter = requiredAttributes.length
       ? {
           productAttributes: {
@@ -138,6 +152,7 @@ export const GET = async (req: Request) => {
         }
       : {};
 
+    // Generate attribute filters based on query params
     const attributeFilters = Object.entries(attributes).map(([attributeName, values]) => ({
       productAttributes: {
         some: {
@@ -147,22 +162,43 @@ export const GET = async (req: Request) => {
       },
     }));
 
+    // Define orderBy condition based on the orderByParam
+    let orderBy: Prisma.ProductOrderByWithRelationInput | undefined = undefined;
+    switch (orderByParam) {
+      case "low_to_high":
+        orderBy = { price: "asc" };
+        break;
+      case "high_to_low":
+        orderBy = { price: "desc" };
+        break;
+      case "newest":
+        orderBy = { createdAt: "desc" };
+        break;
+      default:
+        orderBy = undefined; // No ordering if orderByParam is not specified or invalid
+    }
+
+    // Count the total matching products
     const count = await db.product.count({
       where: {
         AND: [
           baseFilter,
+          searchFilter,
           ...(categoryId ? [{ categoryId }] : []),
           ...attributeFilters,
         ],
       },
     });
 
+    // Fetch the products with filtering, ordering, and pagination
     const products = await db.product.findMany({
+      ...(orderBy ? { orderBy } : {}), // Apply orderBy only if it's defined
       take,
       skip,
       where: {
         AND: [
           baseFilter,
+          searchFilter,
           ...(categoryId ? [{ categoryId }] : []),
           ...attributeFilters,
         ],
@@ -175,15 +211,15 @@ export const GET = async (req: Request) => {
         },
         productImages: {
           select: {
-            url: true
-          }
-        }
+            url: true,
+          },
+        },
       },
     });
 
-    return NextResponse.json({products: products, count: count});
+    return NextResponse.json({ products, count });
   } catch (error: any) {
-    console.log("[GET /api/products/route.ts] Error:", JSON.stringify(error));
+    console.log("[GET /api/products] Error:", JSON.stringify(error));
 
     if (
       error instanceof Prisma.PrismaClientKnownRequestError ||
