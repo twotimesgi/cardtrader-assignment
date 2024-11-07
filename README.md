@@ -74,7 +74,7 @@ Here are the category IDs that can be used in the application for reference:
 
 
 ## Notes
-- **ERROR 42000 (1226): User 'cardtraderhomework_methodbell' has exceeded the 'max_user_connections' resource (current value: 5)'**: I'm currently using [filess.io](https://filess.io/) free tier, and it really sucks. Please contact me, and I will provide you a new connection string on a better MySql host.
+- **ERROR 42000 (1226): User 'cardtraderhomework_methodbell' has exceeded the 'max_user_connections' resource (current value: 5)'**: I'm currently using [filess.io](https://filess.io/) free tier, and it really sucks. Please contact me if you get this error, I will provide you a new connection string on a better MySql host.
 - **Database Access**: The project is set up to work with the pre-configured database.
 - **Prisma Studio**: If you need to view or modify the database, you can optionally open Prisma Studio with:
   ```bash
