@@ -35,6 +35,10 @@ Ensure the following are installed on your machine:
 3. **Setup ENV variables**:
 Create a new .env file and add the environment variables included in the email.
 
+4. Set-up Prisma
+Run this command to generate prisma client's assets.
+   ```bash
+   npx prisma generate
 ## Running the Project
 
 1. **Start the Development Server**:
