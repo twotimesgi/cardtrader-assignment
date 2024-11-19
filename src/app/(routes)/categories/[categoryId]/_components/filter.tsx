@@ -43,7 +43,7 @@ export const Filter = ({ filter, index }: FilterProps) => {
 
     return (
         <AccordionItem value={`${index}`}>
-            <AccordionTrigger>{capitalize(filter.attributeName)}</AccordionTrigger>
+            <AccordionTrigger className="whitespace-nowrap">{capitalize(filter.attributeName)}</AccordionTrigger>
             <AccordionContent>
                 <div className="flex flex-wrap gap-2 mt-2 min-w-[250px] overflow-hidden">
                     {filter.possibleValues.map((value) => {
