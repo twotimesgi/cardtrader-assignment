@@ -18,7 +18,7 @@ const TextInput = ({ label, placeholder, required = false, disabled, registratio
       {required && <span className="text-xs text-red-600">Required</span>}
     </FormLabel>
     <FormControl>
-      <Input className="shadow-none rounded-none" placeholder={placeholder} disabled={disabled} {...registration} />
+      <Input className="shadow-none rounded-none" placeholder={placeholder} disabled={disabled} {...registration} type={type} />
     </FormControl>
     <FormMessage />
   </FormItem>

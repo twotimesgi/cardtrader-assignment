@@ -1,5 +1,5 @@
 import { db } from "@/lib/db";
-import { Prisma } from "@prisma/client";
+import { AttributeType, Prisma } from "@prisma/client";
 import { z } from "zod";
 import { NextResponse } from "next/server";
 import { handlePrismaError } from "@/lib/prisma-error-handler";
@@ -11,7 +11,8 @@ const schema = z.object({
   required: z
     .boolean({ message: "Required must be a boolean value" })
     .optional(),
-});
+    type: z.nativeEnum(AttributeType).default(AttributeType.STRING), // Default to STRING
+  });
 
 // POST endpoint to create a new attribute
 export const POST = async (
@@ -27,6 +28,7 @@ export const POST = async (
         name: body.name,
         required: body.required ?? false,
         categoryId: categoryId,
+        type: body.type
       },
     });
 
@@ -74,6 +76,7 @@ export const GET = async (
         name: true,
         required: true,
         categoryId: true,
+        type: true
       },
       orderBy: {
         required: "desc", // Optional: Order required attributes first

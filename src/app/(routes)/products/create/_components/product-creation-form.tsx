@@ -5,7 +5,7 @@ import { useForm, useFieldArray, SubmitHandler, Controller } from "react-hook-fo
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { motion, AnimatePresence } from "framer-motion";
+import { AnimatePresence } from "framer-motion";
 import { Form } from "@/components/ui/form";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
@@ -13,12 +13,11 @@ import { Category, Product, Attribute } from "@prisma/client";
 import { getAttributes } from "../_api/getAttributes";
 import { postProduct } from "../_api/postProduct";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Loader, X } from "lucide-react";
+import { Loader } from "lucide-react";
 import CategorySelector from "./category-selector";
 import TextInput from "./text-input";
 import FileUploader from "./file-uploader";
 import AttributeInput from "./attribute-input";
-import Image from "next/image";
 import { ImagePreviews } from "./image-previews";
 
 const baseSchema = z.object({

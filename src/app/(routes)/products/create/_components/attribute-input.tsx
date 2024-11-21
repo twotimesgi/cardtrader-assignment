@@ -2,7 +2,8 @@ import { Input } from "@/components/ui/input";
 import { FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
 import { Controller, useFieldArray } from "react-hook-form";
 import { motion } from "framer-motion";
-import { Attribute } from "@prisma/client";
+import { Attribute, AttributeType } from "@prisma/client";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 type AttributeInputProps = {
   form: any;
@@ -24,13 +25,29 @@ const AttributeInput = ({ form, attributes, isMutationLoading, fields }: Attribu
               <span>{attribute.name}</span>
               {attribute.required && <span className="text-xs text-red-600">Required</span>}
             </FormLabel>
-            <FormControl>
+            <FormControl className="w-full">
               <Controller
                 control={form.control}
                 name={`attributes.${index}.value`}
-                render={({ field }) => (
-                  <Input className="shadow-none rounded-none" placeholder={attribute.name} {...field} disabled={isMutationLoading} />
-                )}
+                render={({ field }) => {
+                  if(attribute.type != AttributeType.BOOLEAN){
+                    return <Input className="shadow-none rounded-none" type={attribute.type === "NUMBER" ? "number" : "text"}placeholder={attribute.name} {...field} disabled={isMutationLoading} />
+                  }else{
+                    return <Select
+                  value={field.value}
+                  onValueChange={field.onChange}
+                >
+                  <SelectTrigger className="min-w-full rounded-none shadow-none md:w-auto">
+                    <SelectValue placeholder="Boolean"/>
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="true">True</SelectItem>
+                    <SelectItem value="false">False</SelectItem>
+                  </SelectContent>
+                </Select>
+
+                  }
+                }}
               />
             </FormControl>
             <FormMessage />
