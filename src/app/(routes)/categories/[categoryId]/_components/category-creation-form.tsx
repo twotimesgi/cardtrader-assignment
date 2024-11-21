@@ -10,7 +10,7 @@ import { toast } from "sonner";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { PlusCircle } from "lucide-react";
 import { useMutation } from "@tanstack/react-query";
-import { postCategory } from "../_api/postCategory";
+import { postCategory } from "../../create/_api/postCategory";
 import { Category } from "@prisma/client";
 import { AttributeFields } from "./attribute-fields";
 

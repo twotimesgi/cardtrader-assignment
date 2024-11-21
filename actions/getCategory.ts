@@ -12,7 +12,7 @@ export const getCategory = async ({categoryId} : {categoryId: string}) : Promise
 
         return category;
     }catch(error: any){
-        console.log("[actions/getCategories.ts] Error:", JSON.stringify(error))
+        console.log("[actions/getCategory.ts] Error:", JSON.stringify(error))
         return null;
     }
 }

@@ -1,5 +1,5 @@
 
-import {CategoryForm}  from "./_components/category-creation-form";
+import {CategoryForm}  from "../[categoryId]/_components/category-creation-form";
 
 const CreateCategoryPage = async () => {
   return (

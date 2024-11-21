@@ -9,12 +9,12 @@ export const Header = async () => {
     
   return (
     <header>
-     <nav className="w-full p-4 overflow-x-scroll flex gap-14 no-scrollbar bg-black/90 ">
+     <nav className="w-full p-4 overflow-x-scroll flex gap-10 no-scrollbar bg-black/90 ">
      <Link href={`/`}
-      className={"text-2xl text-nowrap text-white/70 hover:text-white"}
+      className={"text-xl text-nowrap text-white/70 hover:text-white"}
       >All products</Link>
-      {[...categories, ...categories, ...categories, ...categories].map((category : Category) => <Link href={`/categories/${category.id}`} key={category.id} 
-      className={"text-2xl text-nowrap text-white/70 hover:text-white"}
+      {categories.map((category : Category) => <Link href={`/categories/${category.id}`} key={category.id} 
+      className={"text-xl text-nowrap text-white/70 hover:text-white"}
       >{category.name}</Link>
       )}
     </nav>
