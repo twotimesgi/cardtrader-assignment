@@ -3,6 +3,7 @@ import { Prisma } from "@prisma/client";
 import { z } from "zod";
 import { NextResponse } from "next/server";
 import { handlePrismaError } from "@/lib/prisma-error-handler";
+import { AttributeType } from "@prisma/client";
 
 const schema = z.object({
   name: z.string().min(2, { message: "Category name must be 2 or more characters long" }).trim(),
@@ -10,6 +11,7 @@ const schema = z.object({
     z.object({
       name: z.string().min(1, { message: "Attribute name cannot be empty" }).trim(),
       required: z.boolean(),
+      type: z.nativeEnum(AttributeType).default(AttributeType.STRING), // Default to STRING
     })
   ),
 });
@@ -28,6 +30,7 @@ export const POST = async (req: Request) => {
           create: filteredAttributes.map((attribute) => ({
             name: attribute.name,
             required: attribute.required,
+            type: attribute.type
           })),
         },
       },

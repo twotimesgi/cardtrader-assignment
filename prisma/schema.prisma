@@ -44,26 +44,31 @@ model ProductImage {
 
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
-
   @@index([productId])
 }
 
-//TODO: Add required attributes
+//Possible attribute types
+enum AttributeType {
+  NUMBER
+  STRING
+  BOOLEAN
+}
+
 model Attribute {
   id         String   @id @default(uuid())
   name       String
   categoryId String
   required   Boolean  @default(false)
+  type       AttributeType
   category   Category @relation(fields: [categoryId], references: [id], onDelete: Cascade) // Foreign key relation with cascading delete
   ProductAttributeValue ProductAttributeValue[]
 
-  createdAt             DateTime                @default(now())
-  updatedAt             DateTime                @updatedAt
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 
   @@index([categoryId]) // Index on categoryId
   @@unique([name, categoryId]) // Ensures each attribute name is unique within a category
 }
-
 model ProductAttributeValue {
   id          String    @id @default(uuid())
   value       String // e.g., "Red", "Large"

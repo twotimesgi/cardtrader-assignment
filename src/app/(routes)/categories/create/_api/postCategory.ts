@@ -3,7 +3,7 @@ import axios from "axios";
 
 export interface CategoryData {
   name: string;
-  attributes: { name: string; required: boolean }[];
+  attributes: { name: string; required: boolean, type: string }[];
 }
 
 export const postCategory = async (categoryData: CategoryData): Promise<Category> => {

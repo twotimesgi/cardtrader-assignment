@@ -1,9 +1,10 @@
-import { Control, FieldValues, UseFieldArrayRemove } from "react-hook-form";
+import { Control, Controller, FieldValues, UseFieldArrayRemove } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import { Trash } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import TextInput from "@/components/text-input";
 import { FormValues } from "./category-creation-form";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface AttributeFieldsProps {
   fields: { id: string }[];
@@ -19,7 +20,7 @@ export const AttributeFields = ({ fields, control, remove }: AttributeFieldsProp
   };
 
   return (
-    <div className="grid sm:grid-cols-1 md:grid-cols-2 gap-6">
+    <div className="grid grid-cols-1 gap-6">
       <AnimatePresence>
         {fields.map((field, index) => (
           <motion.div
@@ -46,6 +47,28 @@ export const AttributeFields = ({ fields, control, remove }: AttributeFieldsProp
                 <label className="text-xs">Required</label>
               </div>
             </div>
+
+            {/* Updated Select with Controller */}
+            <Controller
+              name={`attributes.${index}.type` as const}
+              control={control}
+              defaultValue="STRING"
+              render={({ field }) => (
+                <Select
+                  value={field.value}
+                  onValueChange={field.onChange}
+                >
+                  <SelectTrigger className="min-w-40 rounded-none shadow-none md:w-auto">
+                    <SelectValue placeholder="Type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="STRING">String</SelectItem>
+                    <SelectItem value="NUMBER">Number</SelectItem>
+                    <SelectItem value="BOOLEAN">Boolean</SelectItem>
+                  </SelectContent>
+                </Select>
+              )}
+            />
 
             <Button
               type="button"

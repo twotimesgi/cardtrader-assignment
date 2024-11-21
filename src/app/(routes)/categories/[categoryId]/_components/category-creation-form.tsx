@@ -21,6 +21,9 @@ const schema = z.object({
     z.object({
       name: z.string().min(1, { message: "Attribute name is required" }),
       required: z.boolean(),
+      type: z.enum(["NUMBER", "STRING", "BOOLEAN"], {
+        errorMap: () => ({ message: "Invalid attribute type" }),
+      }),
     })
   ),
 });
@@ -34,7 +37,7 @@ export const CategoryForm = () => {
     resolver: zodResolver(schema),
     defaultValues: {
       name: "",
-      attributes: [{ name: "", required: false }],
+      attributes: [{ name: "", required: false, type: "STRING" }],
     },
   });
 
@@ -49,7 +52,7 @@ export const CategoryForm = () => {
     mutationFn: postCategory,
     onSuccess: (res: Category) => {
       toast.success("Category created successfully.");
-      router.push(`/categories/${res.id}`);
+      // router.push(`/categories/${res.id}`);
     },
     onError: (error: any) => {
       toast.error(error.response?.data?.error || "An error occurred. Please try again.");
@@ -80,7 +83,7 @@ export const CategoryForm = () => {
                 type="button"
                 onClick={() => {
                   if (fields.length < 6) {
-                    append({ name: "", required: false });
+                    append({ name: "", required: false, type: "STRING" });
                   } else {
                     toast.error("Maximum of 6 attributes allowed.");
                   }
