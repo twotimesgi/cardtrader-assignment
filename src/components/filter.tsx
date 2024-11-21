@@ -1,11 +1,11 @@
-import { Filter as FilterType } from "../../../../../../types/filters";
+import { Filter as FilterType } from "../../types/filters";
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import qs from "query-string";
 import {
     AccordionContent,
     AccordionItem,
     AccordionTrigger,
-} from "../../../../../components/ui/accordion";
+} from "./ui/accordion";
 import { Button } from "@/components/ui/button";
 import { capitalize } from "@/lib/format";
 

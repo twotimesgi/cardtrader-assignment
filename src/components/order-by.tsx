@@ -9,8 +9,8 @@ import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import qs from "query-string";
 
 export const OrderBy = () => {
-  const router = useRouter();
-  const pathname = usePathname();
+  const router =  useRouter();
+  const pathname =  usePathname();
   const searchParams = useSearchParams();
 
   const handleChange = (value: string) => {
@@ -35,9 +35,8 @@ export const OrderBy = () => {
   return (
     <Select
       onValueChange={handleChange}
-      value={searchParams.get("order_by") ?? undefined}
+      value={searchParams.get("order_by") || "newest"}
       defaultValue="newest"
-    
     >
       <SelectTrigger className=" rounded-none shadow-none w-1/2 md:w-auto">
         <SelectValue placeholder="Order by" />

@@ -3,17 +3,17 @@
 import { useInfiniteQuery } from "@tanstack/react-query";
 import { useSearchParams } from "next/navigation";
 import { ExclamationTriangleIcon } from "@radix-ui/react-icons";
-import { ProductCard } from "@/app/(routes)/categories/[categoryId]/_components/product-card";
+import { ProductCard } from "@/components/product-card";
 import { MotionDiv } from "@/components/motion-div";
-import { getProducts } from "../_api/getProducts";
-import { ProductCardSkeleton } from "@/app/(routes)/categories/[categoryId]/_components/skeletons/product-card-skeleton";
-import { PAGE_SIZE } from "../../../../../../const";
-import { useIntersectionObserver } from "../_hooks/useIntersectionObserver";
+import { getProducts } from "../app/helpers/getProducts";
+import { ProductCardSkeleton } from "@/components/skeletons/product-card-skeleton";
+import { PAGE_SIZE } from "../../const";
+import { useIntersectionObserver } from "../app/hooks/useIntersectionObserver";
 import { useEffect } from "react";
 
 interface ProductsContainerProps {
-  categoryId: string;
-  categoryName: string;
+  categoryId?: string ;
+  categoryName?: string;
 }
 
 // Motion variants for product cards
@@ -67,7 +67,7 @@ export const ProductsContainer = ({ categoryId, categoryName }: ProductsContaine
 
   return (
     <div>
-      <h1 className="text-xl mb-4">{categoryName}</h1>
+      <h1 className="text-xl mb-4">{categoryName ?? "All Products"}</h1>
 
       {/* No products found*/}
       {allProducts.length === 0 && !isLoading && (

@@ -3,7 +3,7 @@
 import { SearchIcon } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { useEffect, useState } from "react";
-import { useDebounce } from "../_hooks/useDebounce";
+import { useDebounce } from "../app/hooks/useDebounce";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import qs from "query-string";
 

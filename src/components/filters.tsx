@@ -1,12 +1,12 @@
 "use client";
 import { useState, useEffect } from "react";
-import { useShowFilters } from "@/app/(routes)/categories/[categoryId]/_store/useShowFilters";
+import { useShowFilters } from "@/app/store/useShowFilters";
 import {
   Accordion,
-} from "../../../../../components/ui/accordion";
+} from "./ui/accordion";
 import { AnimatePresence, motion } from "framer-motion";
 import { capitalize } from "@/lib/format";
-import { Filter as FilterType } from "../../../../../../types/filters";
+import { Filter as FilterType } from "../../types/filters";
 import { cn } from "@/lib/utils";
 import { Filter } from "./filter";
 import { Category } from "@prisma/client";

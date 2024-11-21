@@ -1,7 +1,7 @@
 import { ReadonlyURLSearchParams } from "next/navigation";
 import qs from "query-string";
 import axios from "axios";
-import { PAGE_SIZE } from "../../../../../../const";
+import { PAGE_SIZE } from "../../../const";
 
 export const getProducts = async ({
   searchParams,
@@ -12,7 +12,7 @@ export const getProducts = async ({
 }: {
   searchParams: ReadonlyURLSearchParams;
   skip: number;
-  categoryId: string;
+  categoryId?: string;
   take: number;
   search: string; // Explicitly define search as a parameter
 }) => {
