@@ -70,8 +70,9 @@ export const Filter = ({ filter, index }: FilterProps) => {
     }, [searchParams, filter]);
 
     const handleBooleanChange = (checked: boolean) => {
-        updateParams(attributeKey, checked ? "true" : undefined);
+        updateParams(attributeKey, checked.toString()); // Explicitly set "true" or "false"
     };
+    
 
     const handleRangeChange = (value: number[]) => {
         setRangeValue(value);
