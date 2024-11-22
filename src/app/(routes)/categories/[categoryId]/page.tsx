@@ -5,9 +5,10 @@ import { getFilters } from "../../../../../actions/getFilters";
 import { getCategory } from "../../../../../actions/getCategory";
 import { SearchBar } from "../../../../components/search-bar";
 import { MobileFilters } from "@/components/mobile-filters";
-import { Filter } from "../../../../../types/filters";
+import { CategoryAndAttributes, Filter } from "../../../../../types/filters";
 import { Category } from "@prisma/client";
 import { redirect } from "next/navigation";
+import { Header } from "@/components/header";
 
 const Home = async ({ params }: { params: { categoryId: string } }) => {
   const { categoryId } = await params;
@@ -17,7 +18,8 @@ const Home = async ({ params }: { params: { categoryId: string } }) => {
   //Redirecting if couldn't fetch category
   if (!category) redirect("/");
 
-  return (
+  return (<>
+      <Header/>
     <main className="p-4 max-w-[1920px] m-auto">
       <MotionDiv layoutRoot className="flex w-full">
         <Filters filters={filters} className="hidden md:block" />
@@ -30,6 +32,8 @@ const Home = async ({ params }: { params: { categoryId: string } }) => {
         </MotionDiv>
       </MotionDiv>
     </main>
+    </>
+
   );
 };
 

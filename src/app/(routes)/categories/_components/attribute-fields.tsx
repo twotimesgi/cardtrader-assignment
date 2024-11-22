@@ -1,4 +1,4 @@
-import { Control, Controller, FieldValues, UseFieldArrayRemove } from "react-hook-form";
+import { Control, Controller, UseFieldArrayRemove } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import { Trash } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -7,7 +7,7 @@ import { FormValues } from "./category-creation-form";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface AttributeFieldsProps {
-  fields: { id: string }[];
+  fields: { id: string; isNew?: boolean }[];
   control: Control<FormValues>;
   remove: UseFieldArrayRemove;
 }
@@ -37,26 +37,28 @@ export const AttributeFields = ({ fields, control, remove }: AttributeFieldsProp
                 label="Attribute"
                 placeholder="Attribute name"
                 registration={control.register(`attributes.${index}.name` as const)}
+                disabled={!field.isNew} // Disable if not new
               />
               <div className="flex items-center gap-1 w-full">
                 <input
                   type="checkbox"
                   {...control.register(`attributes.${index}.required` as const)}
                   className="h-4 w-4"
+                  disabled={!field.isNew} // Disable if not new
                 />
                 <label className="text-xs">Required</label>
               </div>
             </div>
 
-            {/* Updated Select with Controller */}
             <Controller
               name={`attributes.${index}.type` as const}
               control={control}
               defaultValue="STRING"
-              render={({ field }) => (
+              render={({ field: selectField }) => (
                 <Select
-                  value={field.value}
-                  onValueChange={field.onChange}
+                  value={selectField.value}
+                  onValueChange={selectField.onChange}
+                  disabled={!field.isNew} // Disable if not new
                 >
                   <SelectTrigger className="min-w-40 rounded-none shadow-none md:w-auto">
                     <SelectValue placeholder="Type" />
@@ -70,17 +72,17 @@ export const AttributeFields = ({ fields, control, remove }: AttributeFieldsProp
               )}
             />
 
-            <Button
-              type="button"
-              variant="destructive"
-              className="px-3 rounded-none"
-              size="icon"
-              disabled={fields.length === 1}
-              onClick={() => remove(index)}
-              aria-label="Remove attribute"
-            >
-              <Trash size={16} />
-            </Button>
+              <Button
+                type="button"
+                variant="destructive"
+                className="px-3 rounded-none"
+                size="icon"
+                onClick={() => remove(index)}
+                aria-label="Remove attribute"
+              >
+                <Trash size={16} />
+              </Button>
+            
           </motion.div>
         ))}
       </AnimatePresence>

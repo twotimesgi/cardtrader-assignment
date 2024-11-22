@@ -59,3 +59,126 @@ export const POST = async (req: Request) => {
     return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
   }
 };
+
+const schemaDelete = z.object({
+  categoryId: z.string().uuid({ message: "Invalid category ID" }), // Ensure valid UUID for the category ID
+
+});
+
+export const DELETE = async (req: Request) => {
+  try {
+    // Parse the request body to validate the category ID
+    
+    const body = schemaDelete.parse(await req.json());
+
+    // Delete the category and cascade delete its attributes
+    await db.category.delete({
+      where: {
+        id: body.categoryId,
+      },
+    });
+
+    return NextResponse.json({ message: "Category deleted successfully" });
+  } catch (error: any) {
+    // Log the error for debugging
+    console.log("[DELETE /api/categories] Error:", JSON.stringify(error));
+
+    // Handle Zod validation errors
+    if (error instanceof z.ZodError) {
+      return NextResponse.json({ errors: error.issues }, { status: 400 });
+    }
+
+    // Handle Prisma errors
+    if (
+      error instanceof Prisma.PrismaClientKnownRequestError ||
+      error instanceof Prisma.PrismaClientInitializationError ||
+      error instanceof Prisma.PrismaClientValidationError
+    ) {
+      return handlePrismaError(error);
+    }
+
+    // Handle unknown errors
+    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+  }
+};
+// Define schema for category and attributes
+
+
+
+
+
+const schemaPut = z.object({
+  
+  id: z.string().uuid({ message: "Invalid category ID" }), // Ensure valid UUID for the category ID
+  name: z.string().min(2, { message: "Category name must be 2 or more characters long" }).trim(),
+  attributes: z.array(
+    z.object({
+      id: z.string().optional(), // Optional for new attributes
+      name: z.string().min(1, { message: "Attribute name cannot be empty" }).trim(),
+      required: z.boolean(),
+      type: z.nativeEnum(AttributeType).default(AttributeType.STRING),
+    })
+  ),
+});
+export const PUT = async (req: Request) => {
+  try {
+    // Parse and validate the request body
+    const body = schemaPut.parse(await req.json());
+
+    // Separate attributes into updated, new, and removed
+    const existingAttributes = await db.attribute.findMany({
+      where: { categoryId: body.id },
+    });
+
+    const updatedAttributes = body.attributes.filter((attr) => attr.id); // Attributes with IDs
+    const newAttributes = body.attributes.filter((attr) => !attr.id); // Attributes without IDs
+    const removedAttributeIds = existingAttributes
+      .map((attr) => attr.id)
+      .filter((id) => !body.attributes.some((attr) => attr.id === id)); // IDs of attributes to delete
+
+    // Perform the update operation
+    const updatedCategory = await db.category.update({
+      where: { id: body.id },
+      data: {
+        name: body.name,
+        attributes: {
+          delete: removedAttributeIds.map((id) => ({ id })), // Delete removed attributes
+          create: newAttributes.map((attr) => ({
+            name: attr.name,
+            required: attr.required,
+            type: attr.type,
+          })), // Create new attributes
+          update: updatedAttributes.map((attr) => ({
+            where: { id: attr.id },
+            data: {
+              name: attr.name,
+              required: attr.required,
+              type: attr.type,
+            },
+          })), // Update existing attributes
+        },
+      },
+    });
+
+    return NextResponse.json(updatedCategory);
+  } catch (error: any) {
+    console.log("[PUT /api/categories] Error:", JSON.stringify(error));
+
+    // Handle Zod validation errors
+    if (error instanceof z.ZodError) {
+      return NextResponse.json({ errors: error.issues }, { status: 400 });
+    }
+
+    // Handle Prisma errors
+    if (
+      error instanceof Prisma.PrismaClientKnownRequestError ||
+      error instanceof Prisma.PrismaClientInitializationError ||
+      error instanceof Prisma.PrismaClientValidationError
+    ) {
+      return handlePrismaError(error);
+    }
+
+    // Handle unknown errors
+    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+  }
+};

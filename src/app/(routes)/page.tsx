@@ -2,7 +2,6 @@ import { Filters } from "@/components/filters";
 import { ProductsContainer } from "@/components/products-container";
 import { MotionDiv } from "@/components/motion-div";
 import { getFilters } from "../../../actions/getFilters";
-import { getCategory } from "../../../actions/getCategory";
 import { SearchBar } from "@/components/search-bar";
 import { MobileFilters } from "@/components/mobile-filters";
 import { Filter } from "../../../types/filters";
