@@ -127,7 +127,7 @@ export const Filter = ({ filter, index }: FilterProps) => {
                                 </Button>
                             );
                         })}
-                    {filter.attributeType === AttributeType.NUMBER && (
+                    {filter.attributeType === AttributeType.NUMBER && filter.possibleValues.length > 1 && (
                         <div className="w-full pt-8 pb-2 px-2">
                             <DualRangeSlider
                                 label={(value) => value}
