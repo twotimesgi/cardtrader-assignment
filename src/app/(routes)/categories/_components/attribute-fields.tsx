@@ -34,7 +34,7 @@ export const AttributeFields = ({ fields, control, remove }: AttributeFieldsProp
           >
             <div className="flex flex-col w-full gap-y-1">
               <TextInput
-                label="Attribute"
+                label={`Attribute ${!field.isNew ? "(Not editable)" : ""}`}
                 placeholder="Attribute name"
                 registration={control.register(`attributes.${index}.name` as const)}
                 disabled={!field.isNew} // Disable if not new
