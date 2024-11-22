@@ -12,7 +12,7 @@ interface ProductCardProps {
   id: string;
   model: string;
   brand: string;
-  productImageUrls: ProductImage[];
+  productImageUrls: string[];
   price: number;
 }
 
@@ -35,7 +35,7 @@ export const ProductCard = ({
         {productImageUrls && productImageUrls[0] ? (
           <Image
           loading="lazy"
-            src={productImageUrls[0].url}
+            src={productImageUrls[0]}
             alt={`${brand} ${model}`}
             width={200}
             height={200}

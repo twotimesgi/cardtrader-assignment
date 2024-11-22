@@ -14,6 +14,7 @@ export const getFilters = async ({ categoryId }: GetFiltersParameters) => {
       select: {
         id: true,
         name: true,
+        type: true,
         required: true,
         ProductAttributeValue: {
           select: {
@@ -26,6 +27,7 @@ export const getFilters = async ({ categoryId }: GetFiltersParameters) => {
 
     const filters = attributes.map((attribute) => ({
       attributeName: attribute.name,
+      attributeType: attribute.type,
       required: attribute.required,
       possibleValues: attribute.ProductAttributeValue.map((valueObj) => valueObj.value),
     }));

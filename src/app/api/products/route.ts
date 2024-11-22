@@ -95,7 +95,6 @@ export const POST = async (req: Request) => {
   }
 };
 
-
 export const GET = async (req: Request) => {
   try {
     const url = new URL(req.url);
@@ -105,121 +104,98 @@ export const GET = async (req: Request) => {
     const take = parseInt(searchParams.get("take") ?? "10");
     const categoryId = searchParams.get("categoryId");
     const orderByParam = searchParams.get("order_by");
-    const search = searchParams.get("search")?.trim() || ""; 
+    const search = searchParams.get("search")?.trim() || "";
 
     const searchFilter = search
-  ? {
-      OR: [
-        { model: { contains: search } },
-        { brand: { contains: search } },
-      ],
-    }: {}
-    
+      ? `(model LIKE '%${search}%' OR brand LIKE '%${search}%')`
+      : null;
 
-    // Parse attribute filters from query params
-    const attributes: { [attributeName: string]: string[] } = {};
-    searchParams.forEach((value, key) => {
-      if (key.startsWith("attribute_")) {
-        const attributeName = key.replace("attribute_", "");
-        attributes[attributeName] = value.split(",");
-      }
-    });
-
-    // Fetch required attributes
-    const requiredAttributes = await db.attribute.findMany({
+    const categoryAttributes = await db.attribute.findMany({
       where: {
         ...(categoryId && { categoryId }),
-        required: true,
       },
       select: {
         id: true,
         name: true,
+        type: true,
       },
     });
 
-    const requiredAttributeIds = requiredAttributes.map((attr) => attr.id);
+    const attributeFilters: string[] = [];
+    const rawNumericFilters: string[] = [];
 
-    // Base filter for required attributes
-    const baseFilter = requiredAttributes.length
-      ? {
-          productAttributes: {
-            some: {
-              attributeId: {
-                in: requiredAttributeIds,
-              },
-            },
-          },
+    for (const [key, value] of searchParams.entries()) {
+      if (key.startsWith("attribute_")) {
+        const attributeName = key.replace("attribute_", "");
+        const attribute = categoryAttributes.find((attr) => attr.name === attributeName);
+
+        if (!attribute) continue;
+
+        if (attribute.type === "NUMBER" && value.includes(",")) {
+          const [min, max] = value.split(",").map((v) => parseFloat(v.trim()));
+
+          if (!isNaN(min) && !isNaN(max)) {
+            rawNumericFilters.push(`
+              EXISTS (
+                SELECT 1
+                FROM ProductAttributeValue pav
+                WHERE pav.productId = Product.id
+                AND pav.attributeId = '${attribute.id}'
+                AND CAST(pav.value AS DECIMAL) BETWEEN ${min} AND ${max}
+              )
+            `);
+          } else {
+            console.error(`Invalid numeric range for ${attributeName}: ${value}`);
+          }
+        } else if (attribute.type === "STRING" || attribute.type === "BOOLEAN") {
+          const values = value.split(",").map((v) => `'${v.trim()}'`).join(", ");
+          attributeFilters.push(`
+            EXISTS (
+              SELECT 1
+              FROM ProductAttributeValue pav
+              WHERE pav.productId = Product.id
+              AND pav.attributeId = '${attribute.id}'
+              AND pav.value IN (${values})
+            )
+          `);
         }
-      : {};
-
-    // Generate attribute filters based on query params
-    const attributeFilters = Object.entries(attributes).map(([attributeName, values]) => ({
-      productAttributes: {
-        some: {
-          attribute: { name: attributeName },
-          value: { in: values },
-        },
-      },
-    }));
-
-    // Define orderBy condition based on the orderByParam
-    let orderBy: Prisma.ProductOrderByWithRelationInput | undefined = undefined;
-    switch (orderByParam) {
-      case "low_to_high":
-        orderBy = { price: "asc" };
-        break;
-      case "high_to_low":
-        orderBy = { price: "desc" };
-        break;
-      case "newest":
-        orderBy = { createdAt: "desc" };
-        break;
-      default:
-        orderBy = undefined; // No ordering if orderByParam is not specified or invalid
+      }
     }
 
-    // Count the total matching products
-    const count = await db.product.count({
-      where: {
-        AND: [
-          baseFilter,
-          searchFilter,
-          ...(categoryId ? [{ categoryId }] : []),
-          ...attributeFilters,
-        ],
-      },
-    });
+    const whereClauses = [
+      categoryId ? `categoryId = '${categoryId}'` : null,
+      searchFilter,
+      ...rawNumericFilters,
+      ...attributeFilters,
+    ]
+      .filter(Boolean) // Remove null/undefined filters
+      .join(" AND ");
 
-    // Fetch the products with filtering, ordering, and pagination
-    const products = await db.product.findMany({
-      ...(orderBy ? { orderBy } : {}), // Apply orderBy only if it's defined
-      take,
-      skip,
-      where: {
-        AND: [
-          baseFilter,
-          searchFilter,
-          ...(categoryId ? [{ categoryId }] : []),
-          ...attributeFilters,
-        ],
-      },
-      include: {
-        productAttributes: {
-          include: {
-            attribute: true,
-          },
-        },
-        productImages: {
-          select: {
-            url: true,
-          },
-        },
-      },
-    });
+    const products = await db.$queryRawUnsafe<any>(`
+      SELECT 
+        Product.*,
+        (
+          SELECT JSON_ARRAYAGG(url)
+          FROM ProductImage
+          WHERE ProductImage.productId = Product.id
+        ) AS imageUrls
+      FROM Product
+      WHERE ${whereClauses || "1 = 1"}
+      ORDER BY ${orderByParam === "low_to_high" ? "price ASC" : orderByParam === "high_to_low" ? "price DESC" : "createdAt DESC"}
+      LIMIT ${take} OFFSET ${skip};
+    `);
+
+    const countQuery = await db.$queryRawUnsafe<any>(`
+      SELECT COUNT(*) as total
+      FROM Product
+      WHERE ${whereClauses || "1 = 1"};
+    `);
+
+    const count = Number(countQuery[0]?.total || 0); // Convert BigInt to Number
 
     return NextResponse.json({ products, count });
   } catch (error: any) {
-    console.log("[GET /api/products] Error:", JSON.stringify(error));
+    console.error("[GET /api/products] Error:", error);
 
     if (
       error instanceof Prisma.PrismaClientKnownRequestError ||

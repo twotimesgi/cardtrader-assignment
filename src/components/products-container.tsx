@@ -90,7 +90,7 @@ export const ProductsContainer = ({ categoryId, categoryName }: ProductsContaine
               id={product.id}
               model={product.model}
               brand={product.brand}
-              productImageUrls={product.productImages}
+              productImageUrls={product.imageUrls}
               price={product.price}
             />
           </MotionDiv>
