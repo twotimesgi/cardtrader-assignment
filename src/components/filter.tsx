@@ -87,6 +87,10 @@ export const Filter = ({ filter, index }: FilterProps) => {
         updateParams(attributeKey, updatedValues.length ? updatedValues.join(",") : undefined);
     };
 
+    if(filter.attributeType === AttributeType.NUMBER && filter.possibleValues.length < 3){
+        return <></>
+    }
+
     if (filter.attributeType === AttributeType.BOOLEAN) {
         const isChecked = searchParams.get(attributeKey) === "true";
 
