@@ -1,4 +1,4 @@
-import { AttributeType, Category, Attribute} from "@prisma/client";
+import { AttributeType, Category, Attribute, Product, ProductImage} from "@prisma/client";
 
 export interface Filter {
     attributeName: string;
@@ -9,4 +9,8 @@ export interface Filter {
 
   export interface CategoryAndAttributes extends Category {
     attributes: Attribute[]
+  }
+
+  export interface ProductAndImageUrls extends Product{
+    imageUrls: string[]    
   }

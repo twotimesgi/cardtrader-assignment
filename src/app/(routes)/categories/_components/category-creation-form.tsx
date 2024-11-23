@@ -5,7 +5,6 @@ import { useForm, useFieldArray, SubmitHandler } from "react-hook-form";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Form } from "@/components/ui/form";
-import TextInput from "@/components/text-input";
 import { toast } from "sonner";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { PlusCircle } from "lucide-react";
@@ -17,6 +16,9 @@ import { Attribute, Category } from "@prisma/client";
 import { AttributeFields } from "./attribute-fields";
 import { CategoryAndAttributes } from "../../../../../types/filters";
 import { useConfirm } from "@/app/hooks/useConfirm";
+import TextInput from "../../products/create/_components/text-input";
+import { useState } from "react";
+import RequiredAlert from "@/components/required-alert";
 
 // Validation schema
 const schema = z.object({
@@ -122,8 +124,14 @@ export const CategoryForm = ({ existingCategory }: { existingCategory?: Category
     }
   };
 
+  const [isAlertOpen, setIsAlertOpen] = useState(true);
+
   return (
     <>
+     {existingCategory && <RequiredAlert
+        isOpen={isAlertOpen}
+        onOpenChange={setIsAlertOpen}
+      />}
       <DeleteDialog />
       <div>
         <h1 className="text-2xl mb-4">

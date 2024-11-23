@@ -2,9 +2,12 @@ import { Control, Controller, UseFieldArrayRemove } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import { Trash } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import TextInput from "@/components/text-input";
+import TextInput from "../../products/create/_components/text-input";
 import { FormValues } from "./category-creation-form";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import RequiredAlert from "@/components/required-alert";
+import { useState } from "react";
+import { cn } from "@/lib/utils";
 
 interface AttributeFieldsProps {
   fields: { id: string; isNew?: boolean }[];
@@ -19,8 +22,11 @@ export const AttributeFields = ({ fields, control, remove }: AttributeFieldsProp
     exit: { opacity: 0, x: 20 },
   };
 
+
+  
   return (
-    <div className="grid grid-cols-1 gap-6">
+    <>
+   <div className="grid grid-cols-1 gap-6">
       <AnimatePresence>
         {fields.map((field, index) => (
           <motion.div
@@ -37,16 +43,16 @@ export const AttributeFields = ({ fields, control, remove }: AttributeFieldsProp
                 label={`Attribute ${!field.isNew ? "(Not editable)" : ""}`}
                 placeholder="Attribute name"
                 registration={control.register(`attributes.${index}.name` as const)}
-                disabled={!field.isNew} // Disable if not new
+                // disabled={!field.isNew} // Disable if not new
               />
               <div className="flex items-center gap-1 w-full">
                 <input
                   type="checkbox"
                   {...control.register(`attributes.${index}.required` as const)}
                   className="h-4 w-4"
-                  disabled={!field.isNew} // Disable if not new
+                  // disabled={!field.isNew} // Disable if not new
                 />
-                <label className="text-xs">Required</label>
+                <label className={"text-xs"}>Required</label>
               </div>
             </div>
 
@@ -58,7 +64,7 @@ export const AttributeFields = ({ fields, control, remove }: AttributeFieldsProp
                 <Select
                   value={selectField.value}
                   onValueChange={selectField.onChange}
-                  disabled={!field.isNew} // Disable if not new
+                  // disabled={!field.isNew} // Disable if not new
                 >
                   <SelectTrigger className="min-w-40 rounded-none shadow-none md:w-auto">
                     <SelectValue placeholder="Type" />
@@ -87,5 +93,7 @@ export const AttributeFields = ({ fields, control, remove }: AttributeFieldsProp
         ))}
       </AnimatePresence>
     </div>
+    </>
   );
 };
+

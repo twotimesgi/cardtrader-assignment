@@ -3,6 +3,7 @@ import { Prisma } from "@prisma/client";
 import { z } from "zod";
 import { NextResponse } from "next/server";
 import { handlePrismaError } from "@/lib/prisma-error-handler";
+import { ProductAndImageUrls } from "../../../../types/filters";
 
 const schema = z.object({
   model: z.string().min(2, { message: "Model must be 2 or more characters long" }),
@@ -106,10 +107,19 @@ export const GET = async (req: Request) => {
     const orderByParam = searchParams.get("order_by");
     const search = searchParams.get("search")?.trim() || "";
 
-    const searchFilter = search
-      ? `(model LIKE '%${search}%' OR brand LIKE '%${search}%')`
-      : null;
+    const whereClauses: Prisma.Sql[] = [];
 
+    // Search filter
+    if (search) {
+      whereClauses.push(Prisma.sql`(model LIKE ${`%${search}%`} OR brand LIKE ${`%${search}%`})`);
+    }
+
+    // Category filter
+    if (categoryId) {
+      whereClauses.push(Prisma.sql`categoryId = ${categoryId}`);
+    }
+
+    // Fetch attributes for the category
     const categoryAttributes = await db.attribute.findMany({
       where: {
         ...(categoryId && { categoryId }),
@@ -118,82 +128,174 @@ export const GET = async (req: Request) => {
         id: true,
         name: true,
         type: true,
+        required: true,
       },
     });
 
-    const attributeFilters: string[] = [];
-    const rawNumericFilters: string[] = [];
+    const requiredAttributes = categoryAttributes.filter((attr) => attr.required);
+    const optionalAttributes = categoryAttributes.filter((attr) => !attr.required);
 
-    for (const [key, value] of searchParams.entries()) {
-      if (key.startsWith("attribute_")) {
-        const attributeName = key.replace("attribute_", "");
-        const attribute = categoryAttributes.find((attr) => attr.name === attributeName);
-
-        if (!attribute) continue;
-
-        if (attribute.type === "NUMBER" && value.includes(",")) {
-          const [min, max] = value.split(",").map((v) => parseFloat(v.trim()));
-
-          if (!isNaN(min) && !isNaN(max)) {
-            rawNumericFilters.push(`
-              EXISTS (
-                SELECT 1
-                FROM ProductAttributeValue pav
-                WHERE pav.productId = Product.id
-                AND pav.attributeId = '${attribute.id}'
-                AND CAST(pav.value AS DECIMAL) BETWEEN ${min} AND ${max}
-              )
-            `);
-          } else {
-            console.error(`Invalid numeric range for ${attributeName}: ${value}`);
-          }
-        } else if (attribute.type === "STRING" || attribute.type === "BOOLEAN") {
-          const values = value.split(",").map((v) => `'${v.trim()}'`).join(", ");
-          attributeFilters.push(`
+    // Ensure products meet all required attributes
+    if (requiredAttributes.length > 0) {
+      const requiredAttributeChecks = requiredAttributes.map((attribute) => {
+        const filterValue = searchParams.get(`attribute_${attribute.name}`);
+        if (!filterValue) {
+          return Prisma.sql`
             EXISTS (
               SELECT 1
               FROM ProductAttributeValue pav
               WHERE pav.productId = Product.id
-              AND pav.attributeId = '${attribute.id}'
-              AND pav.value IN (${values})
+              AND pav.attributeId = ${attribute.id}
             )
-          `);
+          `;
+        }
+
+        if (attribute.type === "STRING") {
+          const values = filterValue.split(",").map((v) => v.trim());
+          if (values.length > 0) {
+            return Prisma.sql`
+              EXISTS (
+                SELECT 1
+                FROM ProductAttributeValue pav
+                WHERE pav.productId = Product.id
+                AND pav.attributeId = ${attribute.id}
+                AND pav.value IN (${Prisma.join(values)})
+              )
+            `;
+          }
+        }
+
+        if (attribute.type === "NUMBER" && filterValue.includes(",")) {
+          const [min, max] = filterValue.split(",").map(Number);
+          if (!isNaN(min) && !isNaN(max)) {
+            return Prisma.sql`
+              EXISTS (
+                SELECT 1
+                FROM ProductAttributeValue pav
+                WHERE pav.productId = Product.id
+                AND pav.attributeId = ${attribute.id}
+                AND CAST(pav.value AS DECIMAL) BETWEEN ${min} AND ${max}
+              )
+            `;
+          }
+        }
+
+        if (attribute.type === "BOOLEAN") {
+          const booleanValue = filterValue.toLowerCase() === "true";
+          return Prisma.sql`
+            EXISTS (
+              SELECT 1
+              FROM ProductAttributeValue pav
+              WHERE pav.productId = Product.id
+              AND pav.attributeId = ${attribute.id}
+              AND pav.value = ${booleanValue.toString()}
+            )
+          `;
+        }
+
+        return Prisma.sql``;
+      });
+
+      whereClauses.push(Prisma.sql`(${Prisma.join(requiredAttributeChecks, " AND ")})`);
+    }
+
+    // Apply optional attribute filters
+    for (const [key, value] of searchParams.entries()) {
+      if (key.startsWith("attribute_")) {
+        const attributeName = key.replace("attribute_", "");
+        const attribute = optionalAttributes.find((attr) => attr.name === attributeName);
+
+        if (!attribute) continue;
+
+        if (attribute.type === "NUMBER" && value.includes(",")) {
+          const [min, max] = value.split(",").map(Number);
+
+          if (!isNaN(min) && !isNaN(max)) {
+            whereClauses.push(
+              Prisma.sql`
+              EXISTS (
+                SELECT 1
+                FROM ProductAttributeValue pav
+                WHERE pav.productId = Product.id
+                AND pav.attributeId = ${attribute.id}
+                AND CAST(pav.value AS DECIMAL) BETWEEN ${min} AND ${max}
+              )`
+            );
+          }
+        } else if (attribute.type === "STRING") {
+          const values = value.split(",").map((v) => v.trim());
+          whereClauses.push(
+            Prisma.sql`
+            EXISTS (
+              SELECT 1
+              FROM ProductAttributeValue pav
+              WHERE pav.productId = Product.id
+              AND pav.attributeId = ${attribute.id}
+              AND pav.value IN (${Prisma.join(values)})
+            )`
+          );
+        } else if (attribute.type === "BOOLEAN") {
+          const booleanValue = value.toLowerCase() === "true";
+          whereClauses.push(
+            Prisma.sql`
+            EXISTS (
+              SELECT 1
+              FROM ProductAttributeValue pav
+              WHERE pav.productId = Product.id
+              AND pav.attributeId = ${attribute.id}
+              AND pav.value = ${booleanValue.toString()}
+            )`
+          );
         }
       }
     }
 
-    const whereClauses = [
-      categoryId ? `categoryId = '${categoryId}'` : null,
-      searchFilter,
-      ...rawNumericFilters,
-      ...attributeFilters,
-    ]
-      .filter(Boolean) // Remove null/undefined filters
-      .join(" AND ");
+    const orderByClause = Prisma.sql`
+      ${orderByParam === "low_to_high" ? Prisma.raw("price ASC") :
+        orderByParam === "high_to_low" ? Prisma.raw("price DESC") :
+        Prisma.raw("createdAt DESC")}
+    `;
 
-    const products = await db.$queryRawUnsafe<any>(`
-      SELECT 
-        Product.*,
-        (
-          SELECT JSON_ARRAYAGG(url)
-          FROM ProductImage
-          WHERE ProductImage.productId = Product.id
-        ) AS imageUrls
-      FROM Product
-      WHERE ${whereClauses || "1 = 1"}
-      ORDER BY ${orderByParam === "low_to_high" ? "price ASC" : orderByParam === "high_to_low" ? "price DESC" : "createdAt DESC"}
-      LIMIT ${take} OFFSET ${skip};
-    `);
+    const whereSQL = whereClauses.length > 0 ? Prisma.sql`WHERE ${Prisma.join(whereClauses, " AND ")}` : Prisma.sql``;
 
-    const countQuery = await db.$queryRawUnsafe<any>(`
-      SELECT COUNT(*) as total
-      FROM Product
-      WHERE ${whereClauses || "1 = 1"};
-    `);
+    const products = await db.$queryRaw<ProductAndImageUrls[]>(
+      Prisma.sql`
+        SELECT 
+          Product.*,
+          (
+            SELECT JSON_ARRAYAGG(url)
+            FROM ProductImage
+            WHERE ProductImage.productId = Product.id
+          ) AS imageUrls
+        FROM Product
+        ${whereSQL}
+        ORDER BY ${orderByClause}
+        LIMIT ${take} OFFSET ${skip}
+      `
+    );
 
-    const count = Number(countQuery[0]?.total || 0); // Convert BigInt to Number
+    const countResult = await db.$queryRaw<{ total: number | BigInt }[]>(
+      Prisma.sql`
+        SELECT COUNT(*) as total
+        FROM Product
+        ${whereSQL}
+      `
+    );
 
-    return NextResponse.json({ products, count });
+    const count = countResult[0]?.total || 0;
+
+    const formattedProducts = products.map((product) => ({
+      ...product,
+      id: product.id.toString(),
+      price: product.price,
+      imageUrls: product.imageUrls || [],
+      createdAt: product.createdAt,
+    }));
+
+    return NextResponse.json(
+      { products: formattedProducts, count: count.toString() },
+      { status: 200 }
+    );
   } catch (error: any) {
     console.error("[GET /api/products] Error:", error);
 
