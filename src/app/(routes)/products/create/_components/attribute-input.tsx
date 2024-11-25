@@ -22,7 +22,7 @@ const AttributeInput = ({ form, attributes, isMutationLoading, fields }: Attribu
         <motion.div key={field.id}>
           <FormItem>
             <FormLabel className="w-full flex justify-between">
-              <span>{attribute.name}</span>
+              <span>{attribute.name} ({attribute.type.toLowerCase()})</span>
               {attribute.required && <span className="text-xs text-red-600">Required</span>}
             </FormLabel>
             <FormControl className="w-full">
