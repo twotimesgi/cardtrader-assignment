@@ -1,3 +1,4 @@
+"use client";
 import {
   Select,
   SelectContent,
@@ -7,11 +8,14 @@ import {
 } from "@/components/ui/select";
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import qs from "query-string";
+import { useEffect, useState } from "react";
 
 export const OrderBy = () => {
-  const router =  useRouter();
-  const pathname =  usePathname();
+  const router = useRouter();
+  const pathname = usePathname();
   const searchParams = useSearchParams();
+
+  const [orderBy, setOrderBy] = useState<string | undefined>(undefined); // Default to undefined for placeholder
 
   const handleChange = (value: string) => {
     const currentParams = Object.fromEntries(searchParams.entries());
@@ -21,6 +25,8 @@ export const OrderBy = () => {
       ...currentParams,
       order_by: value,
     };
+
+    setOrderBy(value);
 
     // Build the new URL with updated parameters
     const url = qs.stringifyUrl(
@@ -32,13 +38,20 @@ export const OrderBy = () => {
     router.push(url);
   };
 
+  useEffect(() => {
+    if (searchParams) {
+      const params = Object.fromEntries(searchParams.entries());
+      if (params["order_by"]) {
+        setOrderBy(params["order_by"]);
+      } else {
+        setOrderBy("newest"); // Fallback to default value if not present
+      }
+    }
+  }, [searchParams]);
+
   return (
-    <Select
-      onValueChange={handleChange}
-      value={searchParams.get("order_by") || "newest"}
-      defaultValue="newest"
-    >
-      <SelectTrigger className=" rounded-none shadow-none w-1/2 md:w-auto">
+    <Select onValueChange={handleChange} value={orderBy}>
+      <SelectTrigger className="rounded-none shadow-none w-1/2 md:w-auto min-w-[160px]">
         <SelectValue placeholder="Order by" />
       </SelectTrigger>
       <SelectContent>

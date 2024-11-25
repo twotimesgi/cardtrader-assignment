@@ -30,11 +30,6 @@ export const Filters = ({ filters, className}: FiltersProps) => {
       setOpenItems([]); // Collapse all items
   }, [showFilters]);
 
-  useEffect(() => {
-    console.log(openItems);
-  })
-
-
   return (
     <AnimatePresence>
       {showFilters && (

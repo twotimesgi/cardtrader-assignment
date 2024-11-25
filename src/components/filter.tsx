@@ -93,6 +93,8 @@ export const Filter = ({ filter, index }: FilterProps) => {
     );
   };
 
+  if(filter.possibleValues.length < 2 && AttributeType.STRING === filter.attributeType) return <></>
+
   if (filter.attributeType === AttributeType.NUMBER &&
     (!Array.isArray(filter.possibleValues) ||
     !(filter.possibleValues.length > 2) ||

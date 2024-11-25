@@ -21,13 +21,13 @@ export const SearchBar = ({ filters }: SearchBarProps) => {
         {filters && <Button
           onClick={() => setShowFilters(!showFilters)}
           variant="ghost"
-          className="text-sm rounded-none hidden md:inline-flex w-1/2 md:w-auto"
+          className="text-sm rounded-none hidden lg:inline-flex w-1/2 md:w-auto"
         >
           <IoFilterSharp />
           {showFilters ? "Hide filters" : "Show filters"}
         </Button>}
 
-        {filters && <MobileFilters filters={filters} className="md:hidden inline-flex w-1/2 md:w-auto" />}
+        {filters && <MobileFilters filters={filters} className="lg:hidden inline-flex w-1/2 md:w-auto" />}
         <OrderBy />
         </div>
     </div>
