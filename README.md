@@ -49,15 +49,16 @@ Run this command to generate prisma client's assets.
 The application should now be running on `http://localhost:3000`.
 
 ## Features
-
-- **Category Page Showing All Products**: View all products within a selected category.
-- **Filters**: Filter products by various attributes such as size, color, and material.
+- **Home**: Showing all products.
+- **Category Page**: View all products within a selected category.
+- **Filters**: Filter products by various attributes of different type (number range, boolean, string) such as size, color, and material.
 - **Order by**: Order by creation date or price.
 - **Search with Debounce**: Search for products within a category with a debounce mechanism to minimize request overload.
 - **Infinite Scroll**: Automatically load more products as the user scrolls, providing a seamless browsing experience.
 - **Product Creation Page**: Create new products with necessary details and attributes.
 - **Image Upload and Compression**: Upload images with automatic compression for optimized storage.
 - **Category Creation Page**: Create new categories with customizable attributes, each with an option to mark attributes as required or optional.
+- **Category Edit Page**: Edit existing categories, including modifying attributes (name and required/optional), adding new attributes, or removing existing ones.
 
 ## Routes
 The following routes are available in the project:
@@ -65,17 +66,6 @@ The following routes are available in the project:
 - **/categories/[categoryId]**: Displays a list of all products within a specific category. Visit this route and substitute categoryId with one from below.
 - **/products/create**: A page to create a new product.
 - **/categories/create**: A page to create new categories. Allows you to define attributes for the category, with options to set them as required or optional.
-
-## Category IDs
-
-Here are the category IDs that can be used in the application for reference:
-
-| Category         | ID                                     |
-|------------------|----------------------------------------|
-| Jeans            | b33863c9-ba5e-4745-a9d4-cb06a56b07d4   |
-| Glasses          | c142bd4e-8c99-4811-b956-aa84c643c850   |
-| Shoes            | 8e149008-2d68-43ee-83de-1f06e123688f   |
-
 
 ## Notes
 - **Database Access**: The project is set up to work with the pre-configured database.
