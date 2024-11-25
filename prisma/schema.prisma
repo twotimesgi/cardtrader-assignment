@@ -18,12 +18,12 @@ model Category {
   updatedAt DateTime @updatedAt
 }
 
-
 model Product {
   id                String                  @id @default(uuid())
   model             String
   brand             String
   price             Float
+  published         Boolean                 @default(true)
 
   categoryId        String
   category          Category                @relation(fields: [categoryId], references: [id], onDelete: Cascade)
@@ -33,7 +33,10 @@ model Product {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  @@index([categoryId]) 
+  @@index([categoryId])      // Index for category filtering
+  @@index([published])       // Index for product publish status filter
+  @@index([price])           // Index for price-based ordering
+  @@index([createdAt, price]) // Composite index for efficient pagination and sorting by price
 }
 
 model ProductImage {
@@ -44,10 +47,9 @@ model ProductImage {
 
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
-  @@index([productId])
+  @@index([productId]) // Index on productId for image lookups
 }
 
-//Possible attribute types
 enum AttributeType {
   NUMBER
   STRING
@@ -66,19 +68,23 @@ model Attribute {
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
 
-  @@index([categoryId]) // Index on categoryId
+  @@index([categoryId]) // Index on categoryId for faster filtering by category
+  @@index([name])       // Index for faster lookup by attribute name
   @@unique([name, categoryId]) // Ensures each attribute name is unique within a category
 }
+
 model ProductAttributeValue {
   id          String    @id @default(uuid())
-  value       String // e.g., "Red", "Large"
+  value       String    // e.g., "Red", "Large"
   productId   String
   attributeId String
   product     Product   @relation(fields: [productId], references: [id], onDelete: Cascade) // Foreign key relation with cascading delete
   attribute   Attribute @relation(fields: [attributeId], references: [id], onDelete: Cascade) // Foreign key relation with cascading delete
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
-  @@index([productId]) // Index on productId
-  @@index([attributeId]) // Index on attributeId
+  @@index([productId])      // Index on productId for faster product lookups
+  @@index([attributeId])    // Index on attributeId for faster attribute lookups
+  @@index([productId, attributeId]) // Composite index for filtering by both product and attribute
 }

@@ -1,9 +1,8 @@
-const { PrismaClient } = require('@prisma/client');
+const { PrismaClient } = require("@prisma/client");
 const db = new PrismaClient();
 
 async function main() {
   try {
-    // Create categories
     await db.category.createMany({
       data: [
         { name: "Jeans" },
@@ -14,67 +13,69 @@ async function main() {
     });
     console.log("Success seeding categories.");
 
-    // Fetch created categories
     const categories = await db.category.findMany({
       where: {
         name: { in: ["Jeans", "Glasses", "T-Shirts", "Shoes"] },
       },
     });
 
-    // Define attribute options
     const sizes = ["S", "M", "L", "XL"];
     const colors = ["Red", "Blue", "Black", "White", "Gray"];
     const materialsJeans = ["Denim", "Cotton", "Polyester"];
     const materialsShoes = ["Leather", "Canvas", "Suede"];
     const frameMaterials = ["Metal", "Plastic", "Wood"];
 
-    // Define attributes for each category and create attributes in the database
     const attributesMap = {};
     for (const category of categories) {
       const attributesData = [];
       if (category.name === "Jeans") {
         attributesData.push(
-          { name: "Size", categoryId: category.id, required: true },
-          { name: "Color", categoryId: category.id, required: true },
-          { name: "Material", categoryId: category.id, required: false }
+          { name: "Size", categoryId: category.id, required: true, type: "STRING" },
+          { name: "Color", categoryId: category.id, required: true, type: "STRING" },
+          { name: "Material", categoryId: category.id, required: false, type: "STRING" },
+          { name: "Stretchable", categoryId: category.id, required: false, type: "BOOLEAN" },
+          { name: "Inseam Length", categoryId: category.id, required: false, type: "NUMBER" }
         );
       } else if (category.name === "Glasses") {
         attributesData.push(
-          { name: "Frame Material", categoryId: category.id, required: true },
-          { name: "Color", categoryId: category.id, required: false }
+          { name: "Frame Material", categoryId: category.id, required: true, type: "STRING" },
+          { name: "Color", categoryId: category.id, required: false, type: "STRING" },
+          { name: "UV Protection", categoryId: category.id, required: true, type: "BOOLEAN" },
+          { name: "Lens Width", categoryId: category.id, required: false, type: "NUMBER" }
         );
       } else if (category.name === "T-Shirts") {
         attributesData.push(
-          { name: "Size", categoryId: category.id, required: true },
-          { name: "Color", categoryId: category.id, required: true },
-          { name: "Fabric", categoryId: category.id, required: false }
+          { name: "Size", categoryId: category.id, required: true, type: "STRING" },
+          { name: "Color", categoryId: category.id, required: true, type: "STRING" },
+          { name: "Fabric", categoryId: category.id, required: false, type: "STRING" },
+          { name: "Eco-Friendly", categoryId: category.id, required: false, type: "BOOLEAN" }
         );
       } else if (category.name === "Shoes") {
         attributesData.push(
-          { name: "Size", categoryId: category.id, required: true },
-          { name: "Color", categoryId: category.id, required: true },
-          { name: "Material", categoryId: category.id, required: false }
+          { name: "Size", categoryId: category.id, required: true, type: "STRING" },
+          { name: "Color", categoryId: category.id, required: true, type: "STRING" },
+          { name: "Material", categoryId: category.id, required: false, type: "STRING" },
+          { name: "Waterproof", categoryId: category.id, required: false, type: "BOOLEAN" },
+          { name: "Heel Height", categoryId: category.id, required: false, type: "NUMBER" }
         );
       }
 
       await db.attribute.createMany({ data: attributesData });
       console.log(`Success seeding attributes for ${category.name}.`);
 
-      // Fetch and store attribute IDs for future reference
       const savedAttributes = await db.attribute.findMany({
         where: { categoryId: category.id },
       });
       attributesMap[category.id] = savedAttributes;
     }
 
-    // Helper function to generate random products
     const generateRandomProducts = (categoryId, numProducts, models) => {
       const brands = ["Brand X", "Brand Y", "Brand Z", "Brand Q"];
       const products = [];
       for (let i = 0; i < numProducts; i++) {
         const model = models[Math.floor(Math.random() * models.length)];
         const brand = brands[Math.floor(Math.random() * brands.length)];
-        const price = parseFloat((Math.random() * 100 + 20).toFixed(2)); // Random price between 20 and 120
+        const price = parseFloat((Math.random() * 100 + 20).toFixed(2));
 
         products.push({
           model: `${model} ${i + 1}`,
@@ -86,26 +87,22 @@ async function main() {
       return products;
     };
 
-    // Models for each category
     const categoryModels = {
-      "Jeans": ["Skinny", "Bootcut", "Straight", "Relaxed"],
-      "Glasses": ["Aviator", "Wayfarer", "Round", "Square"],
-      "T-Shirts": ["V-Neck", "Crew Neck", "Polo", "Tank Top"],
-      "Shoes": ["Sneakers", "Boots", "Loafers", "Sandals"],
+      "Jeans": ["Skinny", "Bootcut", "Straight", "Relaxed", "Wide Leg", "Slim Fit", "Tapered"],
+      "Glasses": ["Aviator", "Wayfarer", "Round", "Square", "Cat Eye", "Rectangle"],
+      "T-Shirts": ["V-Neck", "Crew Neck", "Polo", "Tank Top", "Graphic Tee", "Long Sleeve"],
+      "Shoes": ["Sneakers", "Boots", "Loafers", "Sandals", "Flip Flops", "High Tops", "Running Shoes"],
     };
 
-    // Seed products for each category
     for (const category of categories) {
-      const productsData = generateRandomProducts(category.id, 15, categoryModels[category.name]);
+      const productsData = generateRandomProducts(category.id, 30, categoryModels[category.name]);
       await db.product.createMany({ data: productsData });
       console.log(`Success seeding products for ${category.name}.`);
 
-      // Fetch saved products to add attributes and images
       const products = await db.product.findMany({
         where: { categoryId: category.id },
       });
 
-      // Seed attribute values and images for each product
       for (const product of products) {
         const attributeValues = [];
         for (const attribute of attributesMap[category.id]) {
@@ -139,13 +136,25 @@ async function main() {
               attributeId: attribute.id,
               value: frameMaterials[Math.floor(Math.random() * frameMaterials.length)],
             });
+          } else if (attribute.type === "BOOLEAN") {
+            attributeValues.push({
+              productId: product.id,
+              attributeId: attribute.id,
+              value: Math.random() > 0.5 ? "true" : "false",
+            });
+          } else if (attribute.type === "NUMBER") {
+            attributeValues.push({
+              productId: product.id,
+              attributeId: attribute.id,
+              value: (Math.random() * 50).toFixed(2),
+            });
           }
         }
 
         await db.productAttributeValue.createMany({ data: attributeValues });
         console.log(`Success seeding attributes for product ${product.model}.`);
 
-        if (Math.random() > 0.3) { // 70% chance to add images
+        if (Math.random() > 0.3) {
           await db.productImage.createMany({
             data: [
               { productId: product.id, url: `https://picsum.photos/200/200?random=${Math.floor(Math.random() * 1000)}` },
@@ -156,7 +165,6 @@ async function main() {
         }
       }
     }
-
   } catch (error) {
     console.log("Error seeding data:", error);
   } finally {
