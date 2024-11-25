@@ -119,22 +119,31 @@ const schemaPut = z.object({
       type: z.nativeEnum(AttributeType).default(AttributeType.STRING),
     })
   ),
-});
-export const PUT = async (req: Request) => {
+});export const PUT = async (req: Request) => {
   try {
     // Parse and validate the request body
     const body = schemaPut.parse(await req.json());
 
-    // Separate attributes into updated, new, and removed
+    // Fetch existing attributes for the category
     const existingAttributes = await db.attribute.findMany({
       where: { categoryId: body.id },
     });
 
+    // Separate attributes into updated, new, and removed
     const updatedAttributes = body.attributes.filter((attr) => attr.id); // Attributes with IDs
     const newAttributes = body.attributes.filter((attr) => !attr.id); // Attributes without IDs
     const removedAttributeIds = existingAttributes
       .map((attr) => attr.id)
       .filter((id) => !body.attributes.some((attr) => attr.id === id)); // IDs of attributes to delete
+
+    // Identify newly required attributes
+    const newRequiredAttributes = newAttributes.filter((attr) => attr.required);
+
+    // Identify existing attributes that have changed to `required: true`
+    const updatedToRequiredAttributes = updatedAttributes.filter((attr) => {
+      const existing = existingAttributes.find((existingAttr) => existingAttr.id === attr.id);
+      return existing && !existing.required && attr.required; // Was not required, now is required
+    });
 
     // Perform the update operation
     const updatedCategory = await db.category.update({
@@ -159,6 +168,20 @@ export const PUT = async (req: Request) => {
         },
       },
     });
+
+    // Combine all attributes that make products unpublished
+    const allRequiredAttributes = [
+      ...newRequiredAttributes,
+      ...updatedToRequiredAttributes,
+    ];
+
+    // Set products to unpublished if any new or updated required attributes exist
+    if (allRequiredAttributes.length > 0) {
+      await db.product.updateMany({
+        where: { categoryId: body.id },
+        data: { published: false },
+      });
+    }
 
     return NextResponse.json(updatedCategory);
   } catch (error: any) {

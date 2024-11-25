@@ -22,7 +22,7 @@ const Home = async ({ params }: { params: { categoryId: string } }) => {
       <Header/>
     <main className="p-4 max-w-[1920px] m-auto">
       <MotionDiv layoutRoot className="flex w-full">
-        <Filters filters={filters} className="hidden md:block" />
+        <Filters filters={filters} className="hidden lg:block" />
         <MotionDiv className="w-full">
           <SearchBar filters={filters} />
           <ProductsContainer

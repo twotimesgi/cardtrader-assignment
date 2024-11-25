@@ -18,6 +18,8 @@ export const updateCategory = async (categoryData: CategoryData): Promise<Catego
       attributes: categoryData.attributes.filter((attr) => attr.name.trim() !== ""),
     };
 
+    
+
     // Send a PUT request to the API
     const { data } = await axios.put(`/api/categories`, categoryData);
     return data;
