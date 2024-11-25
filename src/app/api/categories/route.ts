@@ -106,20 +106,35 @@ export const DELETE = async (req: Request) => {
 
 
 
-
 const schemaPut = z.object({
-  
   id: z.string().uuid({ message: "Invalid category ID" }), // Ensure valid UUID for the category ID
   name: z.string().min(2, { message: "Category name must be 2 or more characters long" }).trim(),
-  attributes: z.array(
-    z.object({
-      id: z.string().optional(), // Optional for new attributes
-      name: z.string().min(1, { message: "Attribute name cannot be empty" }).trim(),
-      required: z.boolean(),
-      type: z.nativeEnum(AttributeType).default(AttributeType.STRING),
-    })
-  ),
-});export const PUT = async (req: Request) => {
+  attributes: z
+    .array(
+      z.object({
+        id: z.string().optional(), // Optional for new attributes
+        name: z.string().min(1, { message: "Attribute name cannot be empty" }).trim(),
+        required: z.boolean(),
+        type: z.nativeEnum(AttributeType).optional().default(AttributeType.STRING),
+      })
+    )
+    .superRefine((attrs, ctx) => {
+      const names = new Set<string>();
+      attrs.forEach((attr, index) => {
+        if (names.has(attr.name)) {
+          ctx.addIssue({
+            code: "custom", // Specify 'custom' as the issue code
+            path: [index, "name"], // Point to the specific attribute in the array
+            message: "Duplicate attribute names are not allowed.",
+          });
+        } else {
+          names.add(attr.name);
+        }
+      });
+    }),
+});
+
+export const PUT = async (req: Request) => {
   try {
     // Parse and validate the request body
     const body = schemaPut.parse(await req.json());
@@ -136,56 +151,78 @@ const schemaPut = z.object({
       .map((attr) => attr.id)
       .filter((id) => !body.attributes.some((attr) => attr.id === id)); // IDs of attributes to delete
 
-    // Identify newly required attributes
+    // Identify new or updated required attributes
     const newRequiredAttributes = newAttributes.filter((attr) => attr.required);
-
-    // Identify existing attributes that have changed to `required: true`
     const updatedToRequiredAttributes = updatedAttributes.filter((attr) => {
       const existing = existingAttributes.find((existingAttr) => existingAttr.id === attr.id);
       return existing && !existing.required && attr.required; // Was not required, now is required
     });
 
-    // Perform the update operation
-    const updatedCategory = await db.category.update({
-      where: { id: body.id },
-      data: {
-        name: body.name,
-        attributes: {
-          delete: removedAttributeIds.map((id) => ({ id })), // Delete removed attributes
-          create: newAttributes.map((attr) => ({
-            name: attr.name,
-            required: attr.required,
-            type: attr.type,
-          })), // Create new attributes
-          update: updatedAttributes.map((attr) => ({
-            where: { id: attr.id },
-            data: {
+    // Combine all new or updated required attributes
+    const allRequiredAttributes = [
+      ...newRequiredAttributes.map((attr) => ({ id: attr.id, name: attr.name })),
+      ...updatedToRequiredAttributes.map((attr) => ({ id: attr.id, name: attr.name })),
+    ];
+
+    // Update the database in a transaction
+    const updatedCategory = await db.$transaction(async (prisma) => {
+      // Update category and its attributes
+      const category = await prisma.category.update({
+        where: { id: body.id },
+        data: {
+          name: body.name,
+          attributes: {
+            delete: removedAttributeIds.map((id) => ({ id })), // Delete removed attributes
+            create: newAttributes.map((attr) => ({
               name: attr.name,
               required: attr.required,
               type: attr.type,
-            },
-          })), // Update existing attributes
+            })), // Create new attributes
+            update: updatedAttributes.map((attr) => ({
+              where: { id: attr.id },
+              data: {
+                name: attr.name,
+                required: attr.required,
+                type: attr.type,
+              },
+            })), // Update existing attributes
+          },
         },
-      },
-    });
-
-    // Combine all attributes that make products unpublished
-    const allRequiredAttributes = [
-      ...newRequiredAttributes,
-      ...updatedToRequiredAttributes,
-    ];
-
-    // Set products to unpublished if any new or updated required attributes exist
-    if (allRequiredAttributes.length > 0) {
-      await db.product.updateMany({
-        where: { categoryId: body.id },
-        data: { published: false },
       });
-    }
+
+      // Identify products missing required attributes
+      if (allRequiredAttributes.length > 0) {
+        const requiredAttributeIds = allRequiredAttributes.map((attr) => attr.id);
+
+        const productsMissingAttributes = await prisma.$queryRaw<
+          { productId: string }[]
+        >(Prisma.sql`
+          SELECT p.id AS productId
+          FROM Product p
+          LEFT JOIN ProductAttributeValue pav 
+          ON p.id = pav.productId AND pav.attributeId IN (${Prisma.join(requiredAttributeIds)})
+          WHERE p.categoryId = ${body.id} AND p.published = true
+          GROUP BY p.id
+          HAVING COUNT(DISTINCT pav.attributeId) < ${requiredAttributeIds.length}
+        `);
+
+        const productIdsToUnpublish = productsMissingAttributes.map((row) => row.productId);
+
+        // Unpublish products missing required attributes
+        if (productIdsToUnpublish.length > 0) {
+          await prisma.product.updateMany({
+            where: { id: { in: productIdsToUnpublish } },
+            data: { published: false },
+          });
+        }
+      }
+
+      return category;
+    });
 
     return NextResponse.json(updatedCategory);
   } catch (error: any) {
-    console.log("[PUT /api/categories] Error:", JSON.stringify(error));
+    console.error("[PUT /api/categories] Error:", JSON.stringify(error));
 
     // Handle Zod validation errors
     if (error instanceof z.ZodError) {
@@ -198,7 +235,7 @@ const schemaPut = z.object({
       error instanceof Prisma.PrismaClientInitializationError ||
       error instanceof Prisma.PrismaClientValidationError
     ) {
-      return handlePrismaError(error);
+      return NextResponse.json({ error: "Database operation failed", details: error.message }, { status: 500 });
     }
 
     // Handle unknown errors
